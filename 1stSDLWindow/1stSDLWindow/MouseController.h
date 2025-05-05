@@ -3,6 +3,7 @@
 #include "ECS.h"
 #include "Game.h"
 #include <iostream>
+#include "ENUMS.h"
 
 class MouseController : public Component {
 public:
@@ -37,7 +38,7 @@ public:
                     std::cout << "Entity X Pos: " << entity->getComponent<TransformComponent>().position.x<< std::endl;
                 }
 
-                
+                //bullet.addGroup(groupProjectile);
                 // Get the bullet's transform and set its velocity
                 auto& bulletTransform = bullet.getComponent<TransformComponent>();
                 bulletTransform.velocity.y = -1;

@@ -13,6 +13,7 @@ public:
 	
 	Vector2D position;
 	Vector2D velocity;
+	Vector2D previousPosition;
 	
 
 	float speed = 2.0f;
@@ -49,6 +50,7 @@ public:
 	}
 
 	void update() override {
+		previousPosition = position;
 
 		position.x += velocity.x;
 		position.y += velocity.y;

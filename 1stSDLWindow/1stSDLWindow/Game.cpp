@@ -4,7 +4,8 @@
 #include "GameObject.h"
 #include "Map.h"
 #include "Components.h"
-
+#include "EnemySpawner.h"
+#include "ENUMS.h"
 using std::cout;
 using std::endl;
 
@@ -18,20 +19,16 @@ SDL_Event Game::event;
 std::vector<ColliderComponent*> Game::colliders;
 
 
+
+
+
+
+
 auto& wall(manager.addEntity());
 auto& newPlayer(manager.addEntity());
 auto& energySpell(manager.addEntity());
 
-enum groupLabels : std::size_t {
 
-	groupMap,
-	groupPlayers,
-	groupEnemies,
-	groupColliders,
-	groupItems,
-	groupProjectile
-
-};
 
 
 //
@@ -78,7 +75,12 @@ void Game::init(const char* title, int width, int height, bool fullscreen) {
 
 	//player = new GameObject("Pictures/SpaceShip_1_Player.png"	, 0 ,400);
 		//enemy = new GameObject("Pictures/Enemies/Enemy_Level1_Cloud.png"	, 0 ,0);
-	Map::LoadMap("Pictures/Map/p16x16.map",16, 16);
+	
+	//space Invaders map
+	Map::LoadMap("Pictures/Map/p16x16_Level1.map",16, 16);
+	 
+	 //rpg game map
+	//Map::LoadMap("Pictures/Map/p16x16.map",16, 16);
 
 	/*waterTile.addComponent<TileComponent>(200, 200, 64, 64, TileTypes::WATER);
 	dirtTile.addComponent<TileComponent>(250, 250,64,64,TileTypes::DIRT);
@@ -92,12 +94,8 @@ void Game::init(const char* title, int width, int height, bool fullscreen) {
 	newPlayer.addComponent<ColliderComponent>("player");
 	newPlayer.addGroup(groupPlayers);
 
-
-	wall.addComponent<TransformComponent>(256.0f, 256.0f, 64, 12.8f, 5);
-	wall.addComponent<SpriteComponent>("Pictures/Tiles/Obstacle_Tile_1.png");
-	wall.addComponent<ColliderComponent>("wall");
-	wall.addGroup(groupMap);
-
+	enemySpawner = new EnemySpawner(manager);
+	enemySpawner->spawnEnemyFormation();
 
 	energySpell.addComponent<TransformComponent>(512.0f, 512.0f, 64, 64, 1);
 	energySpell.addComponent<SpriteComponent>("Pictures/Objects/Energy_Object_1.png");
@@ -143,6 +141,7 @@ void Game::handleEvents() {
 					newPlayer.getComponent<TransformComponent>().position.y);
 				bullet.addComponent<ColliderComponent>("bullet");
 				bullet.addComponent<SpriteComponent>("Pictures/Bullet_2_Player.png");
+				bullet.addGroup(groupProjectile);
 
 
 				auto& bulletTransform = bullet.getComponent<TransformComponent>();
@@ -155,37 +154,121 @@ void Game::handleEvents() {
 		break;
 	}
 }
+auto& tiles(manager.getGroup(groupMap));
+auto& players(manager.getGroup(groupPlayers));
+auto& enemies(manager.getGroup(groupEnemies));
+auto& items(manager.getGroup(groupItems));
+auto& projectiles(manager.getGroup(groupProjectile));
+auto& walls(manager.getGroup(groupWall));
 
 void Game::update() {
-
 	manager.refresh();
-
 	manager.update();
 
+	Uint32 currentTime = SDL_GetTicks();
+	deltaTime = (currentTime - lastFrameTime) / 1000.0f; // Convert to seconds
+	lastFrameTime = currentTime;
+
+	enemySpawner->update(deltaTime);
+
 	for (auto cc : colliders) {
-
 		Collision::AABB(newPlayer.getComponent<ColliderComponent>(), *cc);
-
 	}
 
-	//if (Collision::AABB(newPlayer.getComponent<ColliderComponent>().collider, wall.getComponent<ColliderComponent>().collider)) {
-	//	//newPlayer.getComponent<TransformComponent>().scale += 0.3;
-	//	newPlayer.getComponent<TransformComponent>().velocity* -1;
-	//	std::cout << "wall hit " << std::endl;
-	//}
 
-	if (Collision::AABB(newPlayer.getComponent<ColliderComponent>().collider, energySpell.getComponent<ColliderComponent>().collider)) {
+	for (auto& wallEntity : walls) {
+		if (Collision::AABB(
+			newPlayer.getComponent<ColliderComponent>().collider,
+			wallEntity->getComponent<ColliderComponent>().collider)) {
+
+			
+			newPlayer.getComponent<TransformComponent>().position =
+				newPlayer.getComponent<TransformComponent>().previousPosition;
+
+			newPlayer.getComponent<TransformComponent>().velocity = { 0, 0 };
+
+			std::cout << "Wall hit\n";
+		}
+	}
+
+	
+	if (Collision::AABB(
+		newPlayer.getComponent<ColliderComponent>().collider,
+		energySpell.getComponent<ColliderComponent>().collider)) {
 		newPlayer.getComponent<TransformComponent>().scale += 0.3;
 		newPlayer.getComponent<TransformComponent>().velocity.x += 1;
+	}
+
+	for (auto& projectile : projectiles) {
+		if (projectile->hasComponent<ColliderComponent>() &&
+			projectile->getComponent<ColliderComponent>().tag == "enemyBullet") {
+
+			if (Collision::AABB(
+				newPlayer.getComponent<ColliderComponent>().collider,
+				projectile->getComponent<ColliderComponent>().collider)) {
+
+				// Player hit by enemy bullet
+				std::cout << "Player hit by enemy bullet!" << std::endl;
+				// Handle player damage/death here
+
+				// Destroy the bullet
+				projectile->destroy();
+			}
+		}
+	}
+
+	for (auto& p1 : projectiles) {
+		if (!p1->isActive()) continue;
+
+		bool isPlayerBullet = p1->getComponent<ColliderComponent>().tag == "bullet";
+
+		for (auto& p2 : projectiles) {
+			if (!p2->isActive() || p1 == p2) continue;
+
+			bool isEnemyBullet = p2->getComponent<ColliderComponent>().tag == "enemyBullet";
+
+			// Only check player bullets against enemy bullets
+			if (isPlayerBullet && isEnemyBullet) {
+				if (Collision::AABB(
+					p1->getComponent<ColliderComponent>().collider,
+					p2->getComponent<ColliderComponent>().collider)) {
+
+					// Bullets collided, destroy both
+					p1->destroy();
+					p2->destroy();
+					break;
+				}
+			}
+		}
+	}
+
+	for (auto& projectile : projectiles) {
+		if (!projectile->isActive() ||
+			projectile->getComponent<ColliderComponent>().tag != "bullet") {
+			continue;
+		}
+
+		for (auto& enemy : enemies) {
+			if (!enemy->isActive()) continue;
+
+			if (Collision::AABB(
+				projectile->getComponent<ColliderComponent>().collider,
+				enemy->getComponent<ColliderComponent>().collider)) {
+
+				std::cout << "Enemy hit by player bullet!" << std::endl;
+
+				// Destroy both the bullet and the enemy
+				projectile->destroy();
+				enemy->destroy();
+				break;
+			}
+		}
 	}
 
 }
 
 
-auto& tiles(manager.getGroup(groupMap));
-auto& players(manager.getGroup(groupPlayers));
-auto& enemies(manager.getGroup(groupEnemies));
-auto& items(manager.getGroup(groupItems));
+
 
 void Game::render() {
 
@@ -196,6 +279,7 @@ void Game::render() {
 
 
 	for (auto* t : tiles) {
+
 		t->draw();
 	}
 	for (auto* p : players) {
@@ -206,13 +290,15 @@ void Game::render() {
 	}
 	for (auto* i : items) {
 		i->draw();
+	}for (auto* p : projectiles) {
+		p->draw();
 	}
 
 	SDL_RenderPresent(renderer);
 }
 
 void Game::clean() {
-
+	delete enemySpawner;
 	SDL_DestroyWindow(window);
 	SDL_DestroyRenderer(renderer);
 	SDL_Quit();
@@ -223,11 +309,21 @@ bool Game::running() {
 	return this->isRunning;
 }
 
-void Game::AddTile(int id, int x, int y) {
+void Game::AddTile(int id, int x, int y, std::set<int>  collisionTileIdList) {
 	auto& tile(manager.addEntity());
 
 	tile.addComponent<TileComponent>(x, y, 64, 64, id);
 	tile.addGroup(groupMap);
+
+	for (int i : collisionTileIdList) {
+
+		if (id == i) {
+			tile.addComponent<ColliderComponent>("wall");
+			tile.addGroup(groupWall);
+
+		}
+	}
+	
 
 }
 

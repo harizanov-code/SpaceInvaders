@@ -8,6 +8,9 @@
 	 DIRT,
 	GRASS,
 	WATER,
+	GRAYTILE,
+	BLACKTILE,
+	
 
 };
 
@@ -41,6 +44,13 @@ public:
 
 		case TileType::DIRT:
 			path = (char*)"Pictures/Tiles/Dirt_Tile_1.png";
+		break;
+		case TileType::BLACKTILE:
+			path = (char*)"Pictures/Tiles/SpaceInvadersTiles/Black_Tile.png";
+		break; 
+		case TileType::GRAYTILE:
+			path = (char*)"Pictures/Tiles/SpaceInvadersTiles/Gray_Tile.png";
+
 		break; 
 		
 
@@ -59,7 +69,10 @@ public:
 		entity->addComponent<SpriteComponent>(path);
 		sprite = &entity->getComponent<SpriteComponent>();
 	}
+	void setTileCollision(int id) {
 
+
+	}
 
 
 };

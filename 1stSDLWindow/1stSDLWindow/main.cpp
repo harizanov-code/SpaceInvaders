@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
 	int frameTime;
 
 	game = new Game();
-	game->init("ELDER SCROOLS",  1600, 1280, false);
+	game->init("ELDER SCROOLS", 1024,  1024, false);
 
 	std::cout << game->running() << std::endl;
 	while (game->running()) {
