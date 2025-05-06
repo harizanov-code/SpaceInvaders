@@ -52,6 +52,7 @@ private:
     GroupBitSet groupBitset;
 
 public:
+    Manager& getManager();
     Entity(Manager& mManager);
 
     void update();

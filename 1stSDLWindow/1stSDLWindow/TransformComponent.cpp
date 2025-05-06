@@ -40,19 +40,20 @@ void TransformComponent::resetWithOffset(float yOffset) {
 void TransformComponent::update() {
     previousPosition = position;
 
-    position.x += velocity.x * Game::deltaTime;
-    position.y += velocity.y * Game::deltaTime;
+    position.x += velocity.x;
+    position.y += velocity.y;
 
-    if (position.y < 0 || position.y > yMax || position.x < 0 || position.x > xMax) {
+    if (position.y < 0 || position.y > yMax || position.x < 0 || position.x >(xMax - 100)) {
         if (entity->hasComponent<ColliderComponent>()) {
             auto& collider = entity->getComponent<ColliderComponent>();
-            if (collider.tag == "bullet" || collider.tag == "enemyBullet") {
-                std::cout << "Bullet off the screen" << std::endl;
+            if (collider.tag == "bullet" || collider.tag == "enemyBullet" || collider.tag ==  "itemObject") {
+                std::cout << "Went off the screen" << std::endl;
+             
                 active = false;
                 entity->destroy();
             }
             else {
-                resetWithOffset(EnemySpawner::yOffsetS);
+                //resetWithOffset(EnemySpawner::yOffsetS);
             }
         }
     }

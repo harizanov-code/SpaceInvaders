@@ -12,6 +12,7 @@ int main(int argc, char* argv[]) {
 
 	Uint32 frameStart;
 	int frameTime;
+	std::srand(static_cast<unsigned int>(std::time(nullptr)));
 
 	game = new Game();
 	game->init("ELDER SCROOLS", 1024,  1024, false);

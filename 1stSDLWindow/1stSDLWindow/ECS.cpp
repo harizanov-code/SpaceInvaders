@@ -13,6 +13,13 @@ void Component::draw() {
 Component::~Component() {
 }
 
+Manager& Entity::getManager() {
+    
+        return this->manager;
+
+  
+}
+
 // Entity class
 Entity::Entity(Manager& mManager) : manager(mManager) {
 }

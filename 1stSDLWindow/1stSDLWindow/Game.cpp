@@ -11,6 +11,7 @@
 #include "TransformComponent.h"
 #include "Collision.h"
 #include "TileComponent.h"
+#include "ObjectSpawner.h"
 using std::cout;
 using std::endl;
 
@@ -95,7 +96,7 @@ void Game::init(const char* title, int width, int height, bool fullscreen) {
 	grassTile.addComponent<TileComponent>(150, 150,64,64,TileTypes::GRASS);
 	grassTile.addComponent<ColliderComponent>("grass");*/
 
-	newPlayer.addComponent<TransformComponent>();
+	newPlayer.addComponent<TransformComponent>(0.0f, 950.0f);
 	newPlayer.addComponent<SpriteComponent>("Pictures/SpaceShip_1_Player.png");
 	newPlayer.addComponent<KeyboardController>();
 	newPlayer.addComponent<ColliderComponent>("player");
@@ -104,7 +105,11 @@ void Game::init(const char* title, int width, int height, bool fullscreen) {
 	enemySpawner = new EnemySpawner(manager);
 	enemySpawner->spawnEnemyFormation();
 
-	energySpell.addComponent<TransformComponent>(512.0f, 512.0f, 64, 64, 1);
+	objectSpawner = new ObjectSpawner(manager);
+
+
+
+	energySpell.addComponent<TransformComponent>(950.0f, 950.0f, 64, 64, 1);
 	energySpell.addComponent<SpriteComponent>("Pictures/Objects/Energy_Object_1.png");
 	energySpell.addComponent<ColliderComponent>("energySpell");
 	energySpell.addGroup(groupItems);
@@ -174,6 +179,15 @@ void Game::update() {
 
 	
 
+	Uint32 currentTime = SDL_GetTicks();
+	deltaTime = (currentTime - lastFrameTime) / 1000.0f;
+	lastFrameTime = currentTime;
+
+	enemySpawner->update();
+
+	if (enemySpawner->allEnemiesDestroyed()) {
+		enemySpawner->spawnEnemyFormation();
+	}
 
 	for (auto cc : colliders) {
 		Collision::AABB(newPlayer.getComponent<ColliderComponent>(), *cc);
@@ -184,17 +198,39 @@ void Game::update() {
 		if (Collision::AABB(
 			newPlayer.getComponent<ColliderComponent>().collider,
 			wallEntity->getComponent<ColliderComponent>().collider)) {
-
-			
 			newPlayer.getComponent<TransformComponent>().position =
-				newPlayer.getComponent<TransformComponent>().previousPosition;
-
+			newPlayer.getComponent<TransformComponent>().previousPosition;
 			newPlayer.getComponent<TransformComponent>().velocity = { 0, 0 };
 
 			std::cout << "Wall hit\n";
 		}
+
+		
 	}
 
+
+	for (auto& wallEntity : walls) {
+		if (Collision::AABB(
+			newPlayer.getComponent<ColliderComponent>().collider,
+			wallEntity->getComponent<ColliderComponent>().collider)) {
+			newPlayer.getComponent<TransformComponent>().position =
+				newPlayer.getComponent<TransformComponent>().previousPosition;
+			newPlayer.getComponent<TransformComponent>().velocity = { 0, 0 };
+
+			std::cout << "Wall hit\n";
+		}
+		for (auto& projectile : projectiles) {
+
+			if (Collision::AABB(wallEntity->getComponent<ColliderComponent>().collider, projectile->getComponent<ColliderComponent>().collider)) {
+
+				
+				projectile->destroy();
+
+			}
+		}
+
+
+	}
 	
 	if (Collision::AABB(
 		newPlayer.getComponent<ColliderComponent>().collider,
@@ -231,13 +267,12 @@ void Game::update() {
 
 			bool isEnemyBullet = p2->getComponent<ColliderComponent>().tag == "enemyBullet";
 
-			// Only check player bullets against enemy bullets
+	
 			if (isPlayerBullet && isEnemyBullet) {
 				if (Collision::AABB(
 					p1->getComponent<ColliderComponent>().collider,
 					p2->getComponent<ColliderComponent>().collider)) {
 
-					// Bullets collided, destroy both
 					p1->destroy();
 					p2->destroy();
 					break;
@@ -264,7 +299,7 @@ void Game::update() {
 				// Destroy both the bullet and the enemy
 				projectile->destroy();
 				enemy->destroy();
-				manager.refresh();
+				objectSpawner->spawnObject(enemy);
 
 				break;
 			}
@@ -305,6 +340,7 @@ void Game::render() {
 
 void Game::clean() {
 	delete enemySpawner;
+	delete objectSpawner;
 	SDL_DestroyWindow(window);
 	SDL_DestroyRenderer(renderer);
 	SDL_Quit();

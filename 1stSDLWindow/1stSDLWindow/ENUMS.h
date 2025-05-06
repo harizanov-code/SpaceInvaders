@@ -14,3 +14,13 @@ enum groupLabels : std::size_t {
 	groupProjectile
 
 };
+
+
+
+
+
+enum class ItemType {
+	Speed,
+	Health,
+	BulletSpeed
+};

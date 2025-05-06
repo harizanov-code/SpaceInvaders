@@ -6,7 +6,7 @@
 #include <vector>
 #include <set>
 class EnemySpawner;
-
+class ObjectSpawner;
 class ColliderComponent;
 
 
@@ -34,6 +34,8 @@ public :
 
 	static float deltaTime ;
 private:
+
+	ObjectSpawner* objectSpawner;
 
 	EnemySpawner* enemySpawner;
 	Uint32 lastFrameTime = 0;
