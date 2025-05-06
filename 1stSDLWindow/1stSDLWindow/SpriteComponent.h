@@ -1,69 +1,28 @@
 #pragma once
 
-#include "Components.h"
+#include "ECS.h"
+
 #include "SDL3/SDL.h"
-#include "iostream"
-#include "TextureManager.h"
 
-
+class TransformComponent;
 
 class SpriteComponent : public Component {
 private:
+    TransformComponent* transform = nullptr;
+    SDL_Texture* texture = nullptr;
+    SDL_FRect srcRect, destRect;
 
-	TransformComponent* transform;
-	SDL_Texture* texture;
-	SDL_FRect srcRect, destRect;
+    const char* path = nullptr;
 
-	const char* path;
 public:
+    SpriteComponent();
+    SpriteComponent(const char* path);
+    ~SpriteComponent();
 
-	SpriteComponent() = default;
-	SpriteComponent(const char* path) {
-		this->path = path;
-		setText(path);
-	}
-	~SpriteComponent() {
-		SDL_DestroyTexture(texture);
-	}
+    void setText(const char* path);
+    void init() override;
+    void update() override;
+    void draw() override;
 
-
-	void setText(const char* path) {
-
-		texture = TextureManager::LoadTexture(path);
-	}
-
-	void init()override {
-
-		transform = &entity->getComponent<TransformComponent>();
-
-		srcRect.x = srcRect.y = 0;
-		srcRect.w = transform->width;
-		srcRect.h = transform->height;
-
-
-		//destRect.x = destRect.y = 0;
-		//destRect.w = transform->width * transform->scale;
-		//destRect.h = transform->height* transform->scale;
-
-	}
-
-	void update()override {
-		destRect.x = transform->position.x;
-		destRect.y = transform->position.y;
-		destRect.w = transform->width * transform->scale;
-		destRect.h = transform->height * transform->scale;
-
-
-	}
-	void draw()override {
-	
-		TextureManager::Draw(texture, srcRect, destRect);
-	}
-
-	const char* getPath() {
-
-		return path;
-	}
-
+    const char* getPath();
 };
-

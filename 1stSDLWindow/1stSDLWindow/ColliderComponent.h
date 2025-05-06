@@ -1,45 +1,20 @@
-#pragma once 
+#pragma once
+
 #include <string>
 #include "SDL3/SDL.h"
-#include "Components.h"
-#include <iostream>
-#include "Game.h"
+#include "ECS.h"
+class TransformComponent;
+
 class ColliderComponent : public Component {
-
 public:
-	SDL_FRect collider;
-	std::string tag;
+    SDL_FRect collider;
+    std::string tag;
+    TransformComponent* transform = nullptr;
 
-	TransformComponent* transform;
+    ColliderComponent(std::string tag);
 
-	ColliderComponent(std::string tag) {
-		
-		this->tag = tag;
-	}
-		void init() override {
-			if (!entity->hasComponent<TransformComponent>()) {
+    void init() override;
+    void update() override;
 
-				entity->addComponent<TransformComponent>();
-			}
-
-			transform = &entity->getComponent<TransformComponent>();
-
-			Game::colliders.emplace_back(std::move(this));
-
-	} 
-
-		void update()override {
-
-
-			collider.x = transform->position.x;
-			collider.y = transform->position.y;
-			collider.w = transform->width * transform->scale;
-			collider.h = transform->height * transform->scale;
-		}
-
-
-		std::string getTag()  {
-
-			return this->tag;
-		}
+    std::string getTag();
 };

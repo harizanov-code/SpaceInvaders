@@ -152,14 +152,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BulletUtils.cpp" />
+    <ClCompile Include="ColliderComponent.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="ECS.cpp" />
     <ClCompile Include="EnemySpawner.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="KeyboardController.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map.cpp" />
+    <ClCompile Include="MouseController.cpp" />
+    <ClCompile Include="SpriteComponent.cpp" />
     <ClCompile Include="TextureManager.cpp" />
+    <ClCompile Include="TileComponent.cpp" />
+    <ClCompile Include="TransformComponent.cpp" />
     <ClCompile Include="Vector2D.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -174,6 +180,7 @@
     <ClInclude Include="KeyboardController.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="MouseController.h" />
+    <ClInclude Include="ShootingComponent.h" />
     <ClInclude Include="TileComponent.h" />
     <ClInclude Include="TransformComponent.h" />
     <ClInclude Include="SpriteComponent.h" />

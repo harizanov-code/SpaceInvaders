@@ -3,9 +3,14 @@
 #include <iostream>
 #include "GameObject.h"
 #include "Map.h"
-#include "Components.h"
+#include "ColliderComponent.h"
 #include "EnemySpawner.h"
 #include "ENUMS.h"
+#include "KeyboardController.h"
+#include "SpriteComponent.h"
+#include "TransformComponent.h"
+#include "Collision.h"
+#include "TileComponent.h"
 using std::cout;
 using std::endl;
 
@@ -42,6 +47,8 @@ Game::Game() {
 
 Game::~Game() {
 }
+
+float Game::deltaTime = 1.0f;
 
 void Game::init(const char* title, int width, int height, bool fullscreen) {
 	int flags = 0;
@@ -165,9 +172,7 @@ void Game::update() {
 	manager.refresh();
 	manager.update();
 
-	Uint32 currentTime = SDL_GetTicks();
-	deltaTime = (currentTime - lastFrameTime) / 1000.0f; // Convert to seconds
-	lastFrameTime = currentTime;
+	
 
 
 	for (auto cc : colliders) {

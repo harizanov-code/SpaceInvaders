@@ -1,12 +1,31 @@
 #include "EnemySpawner.h"
+#include "Game.h"
+#include "TransformComponent.h"
+#include "ColliderComponent.h"
+#include "SpriteComponent.h"
 #include <iostream>
 #include "ENUMS.h"
+
+float EnemySpawner::yOffsetS = 64.0f;
+
 EnemySpawner::EnemySpawner(Manager& mManager)
     : manager(mManager), rng(std::random_device{}()) {
 }
 
 EnemySpawner::~EnemySpawner() {
 }
+
+void EnemySpawner::refreshEnemies() {
+    for (auto it = enemies.begin(); it != enemies.end(); ) {
+        if (!(*it)->isActive()) {
+            it = enemies.erase(it); // Erase inactive enemies and move the iterator
+        }
+        else {
+            ++it; // Move to the next enemy
+        }
+    }
+}
+
 
 void EnemySpawner::spawnEnemyFormation() {
     // Clear any existing enemies
@@ -32,9 +51,10 @@ void EnemySpawner::spawnEnemyFormation() {
     }
 
     std::cout << "Spawned " << enemies.size() << " enemies" << std::endl;
-}
-
+//}
+//
 //void EnemySpawner::update(float dt) {
+//    refreshEnemies();
 //    // Update the movement pattern
 //    updateEnemyMovement(dt);
 //
@@ -46,7 +66,7 @@ void EnemySpawner::spawnEnemyFormation() {
 //        spawnEnemyFormation();
 //    }
 //}
-
+//
 //void EnemySpawner::updateEnemyMovement(float dt) {
 //    bool shouldChangeDirection = false;
 //    float moveAmount = moveSpeed * dt;
@@ -56,7 +76,7 @@ void EnemySpawner::spawnEnemyFormation() {
 //        if (!enemy->isActive()) continue;
 //
 //        auto& pos = enemy->getComponent<TransformComponent>().position;
-//        if ((movingRight && pos.x > 900) || (!movingRight && pos.x < 100)) {
+//        if ((movingRight && pos.x > 924) || (!movingRight && pos.x < 100)) {
 //            shouldChangeDirection = true;
 //            break;
 //        }
@@ -72,21 +92,22 @@ void EnemySpawner::spawnEnemyFormation() {
 //            // Change direction and move down
 //            movingRight = !movingRight;
 //            transform.position.y += dropDistance;
+//            transform.velocity * -1;
 //        }
 //        else {
 //            // Move horizontally
-//            transform.position.x += movingRight ? moveAmount : -moveAmount;
+//            transform.velocity.x += movingRight ? moveAmount : -moveAmount;
 //        }
 //    }
 //
-//    // Remove inactive enemies from our list
-//    enemies.erase(
-//        std::remove_if(enemies.begin(), enemies.end(),
-//            [](Entity* e) { return !e->isActive(); }
-//        ),
-//        enemies.end()
-//    );
-//}
+//    //// Remove inactive enemies from our list
+//    //enemies.erase(
+//    //    std::remove_if(enemies.begin(), enemies.end(),
+//    //        [](Entity* e) { return !e->isActive(); }
+//    //    ),
+//    //    enemies.end()
+//    //);
+}
 
 int EnemySpawner::countActiveBullets() {
     int count = 0;
@@ -140,3 +161,4 @@ void EnemySpawner::tryEnemyShoot(float dt) {
     auto& bulletTransform = bullet.getComponent<TransformComponent>();
     bulletTransform.velocity.y = 5; // Moving down
 }
+

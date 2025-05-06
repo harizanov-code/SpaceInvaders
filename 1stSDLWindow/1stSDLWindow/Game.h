@@ -32,10 +32,10 @@ public :
 
 
 
+	static float deltaTime ;
 private:
 
 	EnemySpawner* enemySpawner;
-	float deltaTime = 0.0f;
 	Uint32 lastFrameTime = 0;
 	int width = 0;
 	int height = 0;

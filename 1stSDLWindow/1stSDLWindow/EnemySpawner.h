@@ -1,27 +1,29 @@
 #pragma once
-#include "Game.h"
+
 #include "ECS.h"
-#include "Components.h"
+
 #include <vector>
 #include <chrono>
 #include <random>
+
+class ColliderComponent;
 
 class EnemySpawner {
 private:
     Manager& manager;
     std::vector<Entity*> enemies;
-    int maxEnemies = 3;          // Maximum number of enemies on screen
-    int maxEnemyBullets = 5;      // Maximum number of bullets all enemies can fire
-    float enemyShootCooldown = 1.0f; // Time between enemy shots
+    int maxEnemies = 9;          
+    int maxEnemyBullets = 5;    
+    float enemyShootCooldown = 1.0f; 
     float lastEnemyShootTime = 0.0f;
-    std::mt19937 rng;             // Random number generator
+    std::mt19937 rng;             
 
     // Enemy formation variables
-    int rows = 1;
+    int rows = 3;
     int columns = 3;
     float xSpacing = 100.0f;
     float ySpacing = 80.0f;
-    float xOffset = 200.0f;       // Starting X position
+    float xOffset = 200.0f;       
     float yOffset = 100.0f; 
     
     
@@ -33,9 +35,11 @@ private:
     float dropDistance = 30.0f;
 
 public:
+    static float yOffsetS;
     EnemySpawner(Manager& mManager);
     ~EnemySpawner();
 
+    void refreshEnemies();
     void spawnEnemyFormation();
     void update(float dt);
     void updateEnemyMovement(float dt);
