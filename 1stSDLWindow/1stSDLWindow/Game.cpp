@@ -169,7 +169,6 @@ void Game::update() {
 	deltaTime = (currentTime - lastFrameTime) / 1000.0f; // Convert to seconds
 	lastFrameTime = currentTime;
 
-	enemySpawner->update(deltaTime);
 
 	for (auto cc : colliders) {
 		Collision::AABB(newPlayer.getComponent<ColliderComponent>(), *cc);
@@ -260,6 +259,8 @@ void Game::update() {
 				// Destroy both the bullet and the enemy
 				projectile->destroy();
 				enemy->destroy();
+				manager.refresh();
+
 				break;
 			}
 		}

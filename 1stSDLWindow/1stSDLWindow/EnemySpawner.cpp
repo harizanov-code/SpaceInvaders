@@ -20,7 +20,9 @@ void EnemySpawner::spawnEnemyFormation() {
             float xPos = xOffset + col * xSpacing;
             float yPos = yOffset + row * ySpacing;
 
-            enemy.addComponent<TransformComponent>(xPos, yPos, 64, 64, 1);
+            //1024 is the max X and max Y of the screen
+            enemy.addComponent<TransformComponent>(xPos, yPos, 64, 64, 1, 1024, 1024);
+            enemy.getComponent<TransformComponent>().velocity.x += 1;
             enemy.addComponent<SpriteComponent>("Pictures/Enemies/Enemy_Level1_Cloud.png");
             enemy.addComponent<ColliderComponent>("enemy");
             enemy.addGroup(groupEnemies);
@@ -32,59 +34,59 @@ void EnemySpawner::spawnEnemyFormation() {
     std::cout << "Spawned " << enemies.size() << " enemies" << std::endl;
 }
 
-void EnemySpawner::update(float dt) {
-    // Update the movement pattern
-    updateEnemyMovement(dt);
+//void EnemySpawner::update(float dt) {
+//    // Update the movement pattern
+//    updateEnemyMovement(dt);
+//
+//    // Try to make an enemy shoot
+//    tryEnemyShoot(dt);
+//
+//    // Check if all enemies are dead
+//    if (enemies.empty()) {
+//        spawnEnemyFormation();
+//    }
+//}
 
-    // Try to make an enemy shoot
-    tryEnemyShoot(dt);
-
-    // Check if all enemies are dead
-    if (enemies.empty()) {
-        spawnEnemyFormation();
-    }
-}
-
-void EnemySpawner::updateEnemyMovement(float dt) {
-    bool shouldChangeDirection = false;
-    float moveAmount = moveSpeed * dt;
-
-    // Check if any enemy would hit the edge of the screen
-    for (auto* enemy : enemies) {
-        if (!enemy->isActive()) continue;
-
-        auto& pos = enemy->getComponent<TransformComponent>().position;
-        if ((movingRight && pos.x > 900) || (!movingRight && pos.x < 100)) {
-            shouldChangeDirection = true;
-            break;
-        }
-    }
-
-    // Move all enemies
-    for (auto* enemy : enemies) {
-        if (!enemy->isActive()) continue;
-
-        auto& transform = enemy->getComponent<TransformComponent>();
-
-        if (shouldChangeDirection) {
-            // Change direction and move down
-            movingRight = !movingRight;
-            transform.position.y += dropDistance;
-        }
-        else {
-            // Move horizontally
-            transform.position.x += movingRight ? moveAmount : -moveAmount;
-        }
-    }
-
-    // Remove inactive enemies from our list
-    enemies.erase(
-        std::remove_if(enemies.begin(), enemies.end(),
-            [](Entity* e) { return !e->isActive(); }
-        ),
-        enemies.end()
-    );
-}
+//void EnemySpawner::updateEnemyMovement(float dt) {
+//    bool shouldChangeDirection = false;
+//    float moveAmount = moveSpeed * dt;
+//
+//    // Check if any enemy would hit the edge of the screen
+//    for (auto* enemy : enemies) {
+//        if (!enemy->isActive()) continue;
+//
+//        auto& pos = enemy->getComponent<TransformComponent>().position;
+//        if ((movingRight && pos.x > 900) || (!movingRight && pos.x < 100)) {
+//            shouldChangeDirection = true;
+//            break;
+//        }
+//    }
+//
+//    // Move all enemies
+//    for (auto* enemy : enemies) {
+//        if (!enemy->isActive()) continue;
+//
+//        auto& transform = enemy->getComponent<TransformComponent>();
+//
+//        if (shouldChangeDirection) {
+//            // Change direction and move down
+//            movingRight = !movingRight;
+//            transform.position.y += dropDistance;
+//        }
+//        else {
+//            // Move horizontally
+//            transform.position.x += movingRight ? moveAmount : -moveAmount;
+//        }
+//    }
+//
+//    // Remove inactive enemies from our list
+//    enemies.erase(
+//        std::remove_if(enemies.begin(), enemies.end(),
+//            [](Entity* e) { return !e->isActive(); }
+//        ),
+//        enemies.end()
+//    );
+//}
 
 int EnemySpawner::countActiveBullets() {
     int count = 0;

@@ -30,6 +30,7 @@ public:
 
 		void update()override {
 
+
 			collider.x = transform->position.x;
 			collider.y = transform->position.y;
 			collider.w = transform->width * transform->scale;

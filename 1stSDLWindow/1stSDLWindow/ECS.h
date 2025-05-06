@@ -7,6 +7,7 @@
 #include <array>
 #include <iostream>
 
+
 class Component;
 class Entity;
 class Manager;
@@ -129,6 +130,7 @@ public:
 
     void update() {
         for (auto& e : entities) {
+           
             e->update();
         }
     }
@@ -141,7 +143,7 @@ public:
 
     void refresh() {
        
-        for (auto i(0u); i < maxGroups; i++)             {
+        for (auto i(0u); i < maxGroups; i++) {
 
             auto& v(groupedEntities[i]);
             v.erase(std::remove_if(std::begin(v), std::end(v), [i](Entity* mEntity) {
@@ -170,7 +172,7 @@ public:
         entities.emplace_back(std::move(uPtr));
 
 
-        std::cout << "[Manager] Entity added. Total: " << entities.size() << std::endl;
+        //std::cout << "[Manager] Entity added. Total: " << entities.size() << std::endl;
 
         return *e;
     }

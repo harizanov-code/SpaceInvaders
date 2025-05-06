@@ -34,6 +34,12 @@ Vector2D& Vector2D::Divide(const Vector2D& vec) {
 	return *this;
 }
 
+void Vector2D::ResetWithOffset(float xOffset) {
+	this->y += xOffset;
+	this->x = 0.0f;
+
+}
+
 
 
 Vector2D& operator+ (Vector2D& v1, const Vector2D& v2){
@@ -81,6 +87,11 @@ std::ostream& operator<<(std::ostream& stream, const Vector2D& vec) {
 Vector2D& Vector2D::operator*(const int& i) {
 	this->x *= i;
 	this->y *= i;
+
+	return *this;
+}Vector2D& Vector2D::operator+(const int& i) {
+	this->x += i;
+	this->y += i;
 
 	return *this;
 }

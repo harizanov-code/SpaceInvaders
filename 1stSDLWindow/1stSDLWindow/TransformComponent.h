@@ -20,6 +20,10 @@ public:
 	bool active = true;
 	
 
+	float verticalOffset;
+	float xMax;
+	float yMax;
+
 	float height = 64;
 	float width = 64;
 	int scale = 1;
@@ -27,6 +31,8 @@ public:
 
 	TransformComponent() {
 		position.Zero();
+		xMax = 1024;
+		yMax = 1024;
 	}
 
 	TransformComponent(int scale) {
@@ -45,21 +51,48 @@ public:
 		width = w;
 		this->scale = scale;
 	}
+	TransformComponent(float x, float y, float h, float w, int scale, float xMax, float yMax) {
+		position.x = x;
+		position.y = y;
+		height = h;
+		width = w;
+		this->scale = scale;
+		this->xMax = xMax;
+		this->yMax = yMax;
+	}
 	void init() override {
 		velocity.Zero();
 	}
 
-	void update() override {
+	void resetWithOffset(float yOffset) {
+		this->position.ResetWithOffset(yOffset);
+	
+	}
+		
+		void update() override {
 		previousPosition = position;
 
 		position.x += velocity.x;
 		position.y += velocity.y;
 
 		
+
 		// Check if bullet is off-screen (example: off bottom of the screen)
-		if (position.y < 0 || position.y > 1280 || position.x < 0 || position.x > 1600) {
-			active = false;  // Mark bullet as inactive when it goes off-screen
+		if (position.y < 0 || position.y > yMax || position.x < 0 || position.x > xMax) {
+			if (entity->getComponent<ColliderComponent>().tag == "bullet" || entity->getComponent<ColliderComponent>().tag == "enemyBullet") {
+
+
+			std::cout << "Bullet off the screen" << std::endl;
+			active = false;  // Mark bullet as inactive
 			entity->destroy();
+
+			}
+			else {
+				resetWithOffset()
+
+
+			}
+
 		}
 		
 	}
