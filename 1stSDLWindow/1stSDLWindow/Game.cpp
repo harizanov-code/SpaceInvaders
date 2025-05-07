@@ -83,7 +83,7 @@ void Game::init(const char* title, int width, int height, bool fullscreen) {
 
 	//player = new GameObject("Pictures/SpaceShip_1_Player.png"	, 0 ,400);
 		//enemy = new GameObject("Pictures/Enemies/Enemy_Level1_Cloud.png"	, 0 ,0);
-	
+	TextureManager::DrawHealthBar(0, 0, 300, 50, 20 );
 	//space Invaders map
 	Map::LoadMap("Pictures/Map/p16x16_Level1.map",16, 16);
 	 
