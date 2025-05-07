@@ -12,6 +12,9 @@
 #include "Collision.h"
 #include "TileComponent.h"
 #include "ObjectSpawner.h"
+#include "HealthComponent.h"
+#include "HealthRenderSystem.h"
+#include "DamageComponent.h"
 using std::cout;
 using std::endl;
 
@@ -83,7 +86,7 @@ void Game::init(const char* title, int width, int height, bool fullscreen) {
 
 	//player = new GameObject("Pictures/SpaceShip_1_Player.png"	, 0 ,400);
 		//enemy = new GameObject("Pictures/Enemies/Enemy_Level1_Cloud.png"	, 0 ,0);
-	TextureManager::DrawHealthBar(0, 0, 300, 50, 20 );
+	
 	//space Invaders map
 	Map::LoadMap("Pictures/Map/p16x16_Level1.map",16, 16);
 	 
@@ -101,6 +104,7 @@ void Game::init(const char* title, int width, int height, bool fullscreen) {
 	newPlayer.addComponent<KeyboardController>();
 	newPlayer.addComponent<ColliderComponent>("player");
 	newPlayer.addGroup(groupPlayers);
+	newPlayer.addComponent<HealthComponent>();
 
 	enemySpawner = new EnemySpawner(manager);
 	enemySpawner->spawnEnemyFormation();
@@ -247,9 +251,23 @@ void Game::update() {
 				newPlayer.getComponent<ColliderComponent>().collider,
 				projectile->getComponent<ColliderComponent>().collider)) {
 
-				// Player hit by enemy bullet
-				std::cout << "Player hit by enemy bullet!" << std::endl;
-				// Handle player damage/death here
+				// Get damage amount
+				int damage = 10; // Default
+				if (projectile->hasComponent<DamageComponent>()) {
+					damage = projectile->getComponent<DamageComponent>().damageAmount;
+				}
+
+				// Apply damage to player
+				bool playerDied = newPlayer.getComponent<HealthComponent>().takeDamage(damage);
+				std::cout << "Player hit by enemy bullet! Remaining health: "
+					<< newPlayer.getComponent<HealthComponent>().currentHealth << std::endl;
+
+				// Handle player death if needed
+				if (playerDied) {
+					// Game over logic
+					std::cout << "Player died! Game over!" << std::endl;
+					// You could add game over screen or restart logic here
+				}
 
 				// Destroy the bullet
 				projectile->destroy();
@@ -294,12 +312,24 @@ void Game::update() {
 				projectile->getComponent<ColliderComponent>().collider,
 				enemy->getComponent<ColliderComponent>().collider)) {
 
-				std::cout << "Enemy hit by player bullet!" << std::endl;
+				// Get damage amount
+				int damage = 10; // Default
+				if (projectile->hasComponent<DamageComponent>()) {
+					damage = projectile->getComponent<DamageComponent>().damageAmount;
+				}
 
-				// Destroy both the bullet and the enemy
+				// Apply damage to enemy
+				bool enemyDied = enemy->getComponent<HealthComponent>().takeDamage(damage);
+
+				// Always destroy the bullet
 				projectile->destroy();
-				enemy->destroy();
-				objectSpawner->spawnObject(enemy);
+
+				// Handle enemy death
+				if (enemyDied) {
+					std::cout << "Enemy destroyed!" << std::endl;
+					enemy->destroy();
+					objectSpawner->spawnObject(enemy);
+				}
 
 				break;
 			}
@@ -334,6 +364,7 @@ void Game::render() {
 	}for (auto* p : projectiles) {
 		p->draw();
 	}
+	HealthRenderSystem::Draw(manager);
 
 	SDL_RenderPresent(renderer);
 }

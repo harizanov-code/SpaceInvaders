@@ -13,6 +13,7 @@ private:
     std::string bulletTag = "enemyBullet";  // Tag for collision detection
     std::string bulletSprite = "Pictures/Bullet_1_Enemy.png"; // Bullet sprite
     bool shootDown = true;             // Direction: down=true, up=false
+    int bulletDamage = 10;             // Damage amount for bullets
 
 public:
     ShootingComponent() = default;
@@ -30,6 +31,9 @@ public:
     }
     void setBulletSprite(const std::string& sprite) {
         bulletSprite = sprite;
+    }
+    void setBulletDamage(int damage) {
+        bulletDamage = damage;
     }
 
     void shoot();  // Attempt to create a bullet

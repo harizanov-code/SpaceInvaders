@@ -1,8 +1,7 @@
 #include "SDL3/SDL.h"
 #include "Game.h"
 #include <iostream>
-#include <string>
-#include "SDL3_ttf/SDL_ttf.h"
+
 Game* game = nullptr;
 
 
@@ -17,6 +16,7 @@ int main(int argc, char* argv[]) {
 
 	game = new Game();
 	game->init("ELDER SCROOLS", 1024,  1024, false);
+
 
 
 	std::cout << game->running() << std::endl;

@@ -2,15 +2,22 @@
 #pragma once
 #include "ECS.h"
 
+
 class HealthComponent : public Component {
 public:
-    int maxHealth = 100;
-    int currentHealth = 100;
+    int maxHealth;
+    int currentHealth;
+    bool invulnerable = false;
+    float invulnerabilityTime = 0.5f; // Seconds of invulnerability after damage
+    float invulnerabilityTimer = 0.0f;
 
-    HealthComponent(int max = 100) : maxHealth(max), currentHealth(max) {
-    }
+    HealthComponent(int max = 100);
 
-    float getHealthPercent() const {
-        return static_cast<float>(currentHealth) / maxHealth;
-    }
+    void init() override;
+    void update() override;
+
+    float getHealthPercent() const;
+    bool takeDamage(int amount);
+    void heal(int amount);
+    bool isAlive() const;
 };

@@ -27,6 +27,6 @@ void HealthRenderSystem::Draw(Manager& manager) {
             Uint8 green = static_cast<Uint8>(healthPercent * 255);
             SDL_SetRenderDrawColor(Game::renderer, red, green, 0, 255);
             SDL_RenderFillRect(Game::renderer, &hp);
-        
+        }
     }
 }

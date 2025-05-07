@@ -154,10 +154,13 @@
     <ClCompile Include="BulletUtils.cpp" />
     <ClCompile Include="ColliderComponent.cpp" />
     <ClCompile Include="Collision.cpp" />
+    <ClCompile Include="DamageComponent.cpp" />
     <ClCompile Include="ECS.cpp" />
+    <ClCompile Include="EnemyFactory.cpp" />
     <ClCompile Include="EnemySpawner.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="HealthComponent.cpp" />
     <ClCompile Include="HealthRenderSystem.cpp" />
     <ClCompile Include="KeyboardController.cpp" />
     <ClCompile Include="main.cpp" />
@@ -175,7 +178,9 @@
     <ClInclude Include="ColliderComponent.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="Components.h" />
+    <ClInclude Include="DamageComponent.h" />
     <ClInclude Include="ECS.h" />
+    <ClInclude Include="EnemyFactory.h" />
     <ClInclude Include="EnemySpawner.h" />
     <ClInclude Include="ENUMS.h" />
     <ClInclude Include="Game.h" />

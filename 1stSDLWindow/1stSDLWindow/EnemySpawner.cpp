@@ -4,113 +4,102 @@
 #include "TransformComponent.h"
 #include "ColliderComponent.h"
 #include "SpriteComponent.h"
-#include "ShootingComponent.h" // New component
+#include "ShootingComponent.h"
 #include "ENUMS.h"
 #include <iostream>
+#include "HealthComponent.h"
+#include "EnemyFactory.h" // Add this include
 
 float EnemySpawner::yOffsetS = 64.0f;
 
 EnemySpawner::EnemySpawner(Manager& mManager)
-	: manager(mManager), rng(std::random_device{}()) {
+    : manager(mManager), rng(std::random_device{}()) {
+    // Initialize enemy configs
+    EnemyFactory::initialize();
 }
 
 EnemySpawner::~EnemySpawner() {
 }
 
 void EnemySpawner::spawnEnemyFormation() {
-	// Clear any existing enemies
-	enemies.clear();
+    // Clear any existing enemies
+    enemies.clear();
 
-	// Create a grid of enemies
-	for (int row = 0; row < rows; row++) {
-		for (int col = 0; col < columns; col++) {
-			auto& enemy = manager.addEntity();
+    // Create a grid of enemies
+    for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < columns; col++) {
+            float xPos = xOffset + col * xSpacing;
+            float yPos = yOffset + row * ySpacing;
 
-			float xPos = xOffset + col * xSpacing;
-			float yPos = yOffset + row * ySpacing;
+            // Determine enemy type based on row
+            EnemyType type;
+            if (row == 0) {
+                type = EnemyType::LARGE;
+            }
+            else if (row == 1) {
+                type = EnemyType::MEDIUM;
+            }
+            else {
+                type = EnemyType::SMALL;
+            }
 
-			// Position and appearance
-			enemy.addComponent<TransformComponent>(xPos, yPos, 64, 64, 1, 1024, 1024);
-			enemy.getComponent<TransformComponent>().velocity.x = 1.0f; // Adjusted for deltaTime
-			enemy.addComponent<SpriteComponent>("Pictures/Enemies/Enemy_Level1_Cloud.png");
-			enemy.addComponent<ColliderComponent>("enemy");
+            // Create the enemy using factory
+            auto& enemy = EnemyFactory::createEnemy(manager, type, xPos, yPos);
+            enemies.push_back(&enemy);
+        }
+    }
 
-			// Add shooting capability with randomized parameters
-			//float randomCooldown = 1.0f + (static_cast<float>(rand()) / RAND_MAX) * 2.0f; // 1-3 seconds
-			float randomCooldown = 3.0f;
-			enemy.addComponent<ShootingComponent>(
-				randomCooldown,
-				"Pictures/Bullet_2_Enemy.png",
-				"enemyBullet",
-				true // Shoot downward
-			);
-
-			enemy.addGroup(groupEnemies);
-			enemies.push_back(&enemy);
-		}
-	}
-
-	std::cout << "Spawned " << enemies.size() << " enemies" << std::endl;
+    std::cout << "Spawned " << enemies.size() << " enemies" << std::endl;
 }
 
+// Rest of the implementation remains the same
 void EnemySpawner::update() {
-	// Update movement pattern
-
-	cleanupInactiveEnemies();
-	updateEnemyMovement();
-
-	// Remove any inactive enemies from our list
-
-	// Check if all enemies are destroyed - handled externally now
+    // Update movement pattern
+    cleanupInactiveEnemies();
+    updateEnemyMovement();
 }
 
 void EnemySpawner::updateEnemyMovement() {
-	bool shouldChangeDirection = false;
+    bool shouldChangeDirection = false;
 
-	// Check if any enemy would hit the edge of the screen
-	for (auto* enemy : enemies) {
-		if (!enemy->isActive()) continue;
+    // Check if any enemy would hit the edge of the screen
+    for (auto* enemy : enemies) {
+        if (!enemy->isActive()) continue;
 
-		auto& pos = enemy->getComponent<TransformComponent>().position;
-		
-		if ((movingRight && pos.x > 924) || (!movingRight && pos.x < 50)) {
+        auto& pos = enemy->getComponent<TransformComponent>().position;
 
-			shouldChangeDirection = true;
-			break;
-		}
-	}
+        if ((movingRight && pos.x > 924) || (!movingRight && pos.x < 50)) {
+            shouldChangeDirection = true;
+            break;
+        }
+    }
 
-	// Move all enemies
-	for (auto* enemy : enemies) {
-		if (!enemy->isActive()) continue;
+    // Move all enemies
+    for (auto* enemy : enemies) {
+        if (!enemy->isActive()) continue;
 
-		auto& transform = enemy->getComponent<TransformComponent>();
+        auto& transform = enemy->getComponent<TransformComponent>();
 
-		if (shouldChangeDirection) {
-			// Change direction and move down
-			movingRight = !movingRight;
-			transform.position.y += dropDistance;
-			transform.velocity * -1;;
-		}
-	}
+        if (shouldChangeDirection) {
+            // Change direction and move down
+            movingRight = !movingRight;
+            transform.position.y += dropDistance;
+            transform.velocity * -1;
+        }
+    }
 }
 
 void EnemySpawner::cleanupInactiveEnemies() {
-
-	enemies.erase(
-		std::remove_if(enemies.begin(), enemies.end(),
-
-			[](Entity* e) { 
-
-		if (e->isActive() == 1) {
-			return false;
-
-	}
-		else {
-			return true;
-		}
-		}
-		),
-		enemies.end()
-	);
+    enemies.erase(
+        std::remove_if(enemies.begin(), enemies.end(),
+            [](Entity* e) {
+        if (e->isActive() == 1) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }),
+        enemies.end()
+    );
 }

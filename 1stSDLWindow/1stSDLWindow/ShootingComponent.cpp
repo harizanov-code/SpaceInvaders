@@ -2,10 +2,10 @@
 #include "ShootingComponent.h"
 #include "Game.h"
 #include "TransformComponent.h"
-
 #include "ECS.h"
 #include "ColliderComponent.h"
 #include "SpriteComponent.h"
+#include "DamageComponent.h" // Add this include
 #include "ENUMS.h"
 
 ShootingComponent::ShootingComponent(float cooldown, std::string bulletSprite,
@@ -27,25 +27,19 @@ void ShootingComponent::update() {
     timer += Game::deltaTime;  // Assuming Game has a deltaTime property
     // Try to shoot when cooldown is reached
     if (timer >= cooldown) {
-
-    std::cout << "DELTA TIME" << timer << std::endl;
-    std::cout << "cooldown" << cooldown << std::endl;
         shoot();
         timer = 0;
     }
 }
 
 void ShootingComponent::shoot() {
-    
     int existingBullets = 0;
-   
-        if (entity->hasComponent<ColliderComponent>() &&
-            entity->getComponent<ColliderComponent>().tag == bulletTag &&
-            entity->isActive()) {
-            existingBullets++;
-        }
-  
 
+    if (entity->hasComponent<ColliderComponent>() &&
+        entity->getComponent<ColliderComponent>().tag == bulletTag &&
+        entity->isActive()) {
+        existingBullets++;
+    }
 
     if (existingBullets >= 5) return;
 
@@ -61,9 +55,10 @@ void ShootingComponent::shoot() {
     bullet.addComponent<TransformComponent>(bulletX, bulletY);
     bullet.addComponent<SpriteComponent>(bulletSprite.c_str());
     bullet.addComponent<ColliderComponent>(bulletTag.c_str());
+    bullet.addComponent<DamageComponent>(bulletDamage); 
     bullet.addGroup(groupProjectile);
 
-    // Set velocity based on direction
+ 
     auto& bulletTransform = bullet.getComponent<TransformComponent>();
     bulletTransform.velocity.y = shootDown ? bulletSpeed : -bulletSpeed;
 }
