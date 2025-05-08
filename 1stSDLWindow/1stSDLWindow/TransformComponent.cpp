@@ -43,7 +43,7 @@ void TransformComponent::update() {
     position.x += velocity.x;
     position.y += velocity.y;
 
-    if (position.y < 0 || position.y > yMax || position.x < 0 || position.x >(xMax - 100)) {
+    if (position.y < 0 || position.y > yMax || position.x < 0 || position.x >(xMax )) {
         if (entity->hasComponent<ColliderComponent>()) {
             auto& collider = entity->getComponent<ColliderComponent>();
             if (collider.tag == "bullet" || collider.tag == "enemyBullet" || collider.tag ==  "itemObject") {

@@ -13,6 +13,7 @@ enum class EnemyType {
 
 struct EnemyConfig {
     const char* spritePath;
+    const char* projectileSpritePath;
     int health;
     int bulletDamage;
     float shootCooldown;

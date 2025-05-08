@@ -1,5 +1,6 @@
 // EnemySpawner.cpp
 #include "EnemySpawner.h"
+#include <iostream>
 #include "Game.h"
 #include "TransformComponent.h"
 #include "ColliderComponent.h"
@@ -10,7 +11,7 @@
 #include "HealthComponent.h"
 #include "EnemyFactory.h" // Add this include
 
-float EnemySpawner::yOffsetS = 64.0f;
+float EnemySpawner::yOffsetS = 0.0f;
 
 EnemySpawner::EnemySpawner(Manager& mManager)
     : manager(mManager), rng(std::random_device{}()) {
@@ -60,33 +61,36 @@ void EnemySpawner::update() {
 }
 
 void EnemySpawner::updateEnemyMovement() {
-    bool shouldChangeDirection = false;
+    //bool shouldChangeDirection = false;
 
     // Check if any enemy would hit the edge of the screen
     for (auto* enemy : enemies) {
         if (!enemy->isActive()) continue;
 
-        auto& pos = enemy->getComponent<TransformComponent>().position;
-
-        if ((movingRight && pos.x > 924) || (!movingRight && pos.x < 50)) {
-            shouldChangeDirection = true;
-            break;
-        }
-    }
-
-    // Move all enemies
-    for (auto* enemy : enemies) {
-        if (!enemy->isActive()) continue;
-
         auto& transform = enemy->getComponent<TransformComponent>();
 
-        if (shouldChangeDirection) {
-            // Change direction and move down
-            movingRight = !movingRight;
+        if (( transform.position.x > 924) || ( transform.position.x < 50)) {
             transform.position.y += dropDistance;
             transform.velocity * -1;
+
+            
         }
     }
+    std::cout << "Second enemy pos : " << enemies.at(1)->getComponent<TransformComponent>().position.x << std::endl;
+
+    // Move all enemies
+    //for (auto* enemy : enemies) {
+    //    if (!enemy->isActive()) continue;
+
+    //    auto& transform = enemy->getComponent<TransformComponent>();
+
+    //    if (shouldChangeDirection) {
+    //        // Change direction and move down
+    //        movingRight = !movingRight;
+    //        transform.position.y += dropDistance;
+    //        transform.velocity * -1;
+    //    }
+    //}
 }
 
 void EnemySpawner::cleanupInactiveEnemies() {
