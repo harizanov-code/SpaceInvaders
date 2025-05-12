@@ -26,6 +26,7 @@ void EnemySpawner::spawnEnemyFormation() {
     // Clear any existing enemies
     enemies.clear();
 
+    Game::enemyCount = rows * columns;
     // Create a grid of enemies
     for (int row = 0; row < rows; row++) {
         for (int col = 0; col < columns; col++) {

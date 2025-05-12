@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BaseBoard.cpp" />
     <ClCompile Include="BulletUtils.cpp" />
     <ClCompile Include="ColliderComponent.cpp" />
     <ClCompile Include="Collision.cpp" />
@@ -167,6 +168,7 @@
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="MouseController.cpp" />
     <ClCompile Include="ObjectSpawner.cpp" />
+    <ClCompile Include="ScoreBoard.cpp" />
     <ClCompile Include="ShootingComponent.cpp" />
     <ClCompile Include="SpriteComponent.cpp" />
     <ClCompile Include="TextureManager.cpp" />
@@ -175,6 +177,7 @@
     <ClCompile Include="Vector2D.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BaseBoard.h" />
     <ClInclude Include="ColliderComponent.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="Components.h" />
@@ -191,6 +194,7 @@
     <ClInclude Include="Map.h" />
     <ClInclude Include="MouseController.h" />
     <ClInclude Include="ObjectSpawner.h" />
+    <ClInclude Include="ScoreBoard.h" />
     <ClInclude Include="ShootingComponent.h" />
     <ClInclude Include="TileComponent.h" />
     <ClInclude Include="TransformComponent.h" />

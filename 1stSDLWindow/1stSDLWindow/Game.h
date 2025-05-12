@@ -5,10 +5,11 @@
 #include "SDL3_image/SDL_image.h"
 #include <vector>
 #include <set>
+
 class EnemySpawner;
 class ObjectSpawner;
 class ColliderComponent;
-
+class ScoreBoard;
 
 
 class Game {
@@ -31,12 +32,13 @@ public :
 	static std::vector<ColliderComponent*> colliders;
 
 
-
+	static int enemyCount;
+	void reduceEnemyCount();
 	static float deltaTime ;
 private:
 
 	ObjectSpawner* objectSpawner;
-
+	ScoreBoard* scoreBoard;
 	EnemySpawner* enemySpawner;
 	Uint32 lastFrameTime = 0;
 	int width = 0;

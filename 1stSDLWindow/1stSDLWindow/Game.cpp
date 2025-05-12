@@ -15,6 +15,7 @@
 #include "HealthComponent.h"
 #include "HealthRenderSystem.h"
 #include "DamageComponent.h"
+#include "ScoreBoard.h"
 using std::cout;
 using std::endl;
 
@@ -53,6 +54,7 @@ Game::~Game() {
 }
 
 float Game::deltaTime = 1.0f;
+int Game::enemyCount = 0;
 
 void Game::init(const char* title, int width, int height, bool fullscreen) {
 	int flags = 0;
@@ -105,6 +107,14 @@ void Game::init(const char* title, int width, int height, bool fullscreen) {
 	newPlayer.addComponent<ColliderComponent>("player");
 	newPlayer.addGroup(groupPlayers);
 	newPlayer.addComponent<HealthComponent>();
+	// In Game.cpp init:
+	SDL_Color textColor = { 255, 255, 255, 255 };  // White
+	SDL_Color bgColor = { 0, 0, 0, 0 };         // Semi-transparent black
+
+
+	scoreBoard = new ScoreBoard(&newPlayer,0,0, "./Pictures/Fonts/Roboto-VariableFont.ttf",
+		"Health: 100 | Enemies: 0", 100, bgColor,textColor);
+	scoreBoard->init();
 
 	enemySpawner = new EnemySpawner(manager);
 	enemySpawner->spawnEnemyFormation();
@@ -113,11 +123,12 @@ void Game::init(const char* title, int width, int height, bool fullscreen) {
 
 
 
+
+
 	energySpell.addComponent<TransformComponent>(950.0f, 950.0f, 64, 64, 1);
 	energySpell.addComponent<SpriteComponent>("Pictures/Objects/Energy_Object_1.png");
 	energySpell.addComponent<ColliderComponent>("energySpell");
 	energySpell.addGroup(groupItems);
-
 
 
 
@@ -326,6 +337,7 @@ void Game::update() {
 
 				// Handle enemy death
 				if (enemyDied) {
+					Game::reduceEnemyCount();
 					std::cout << "Enemy destroyed!" << std::endl;
 					enemy->destroy();
 					objectSpawner->spawnObject(enemy);
@@ -335,6 +347,7 @@ void Game::update() {
 			}
 		}
 	}
+	scoreBoard->update();
 
 }
 
@@ -353,6 +366,8 @@ void Game::render() {
 
 		t->draw();
 	}
+	
+
 	for (auto* p : players) {
 		p->draw();
 	}
@@ -366,12 +381,14 @@ void Game::render() {
 	}
 	HealthRenderSystem::Draw(manager);
 
+	scoreBoard->draw();
 	SDL_RenderPresent(renderer);
 }
 
 void Game::clean() {
 	delete enemySpawner;
 	delete objectSpawner;
+	delete scoreBoard;
 	SDL_DestroyWindow(window);
 	SDL_DestroyRenderer(renderer);
 	SDL_Quit();
@@ -398,5 +415,10 @@ void Game::AddTile(int id, int x, int y, std::set<int>  collisionTileIdList) {
 	}
 	
 
+}
+
+void Game::reduceEnemyCount() {
+
+	Game::enemyCount--;
 }
 
