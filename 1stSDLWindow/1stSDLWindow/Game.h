@@ -5,12 +5,16 @@
 #include "SDL3_image/SDL_image.h"
 #include <vector>
 #include <set>
+#include "ENUMS.h"
 
 class EnemySpawner;
 class ObjectSpawner;
 class ColliderComponent;
 class ScoreBoard;
 
+enum GameState {
+	MENU, PLAYING, GAME_OVER
+};
 
 class Game {
 
@@ -35,7 +39,15 @@ public :
 	static int enemyCount;
 	void reduceEnemyCount();
 	static float deltaTime ;
+	static GameState gameState;
 private:
+
+	void initWindowAndRenderer(const char* title, int width, int height, bool fullscreen);
+	void initMap();
+	void initPlayer();
+	void initUI();
+	void initSpawners();
+	void initEntities();
 
 	ObjectSpawner* objectSpawner;
 	ScoreBoard* scoreBoard;

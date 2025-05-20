@@ -21,7 +21,7 @@ using std::endl;
 
 //Map* map;
 Manager manager;
-
+GameState gameState = MENU;
 
 SDL_Renderer* Game::renderer = nullptr;
 SDL_Event Game::event;
@@ -421,4 +421,69 @@ void Game::reduceEnemyCount() {
 
 	Game::enemyCount--;
 }
+
+
+void Game::initWindowAndRenderer(const char* title, int width, int height, bool fullscreen) {
+	int flags = fullscreen ? SDL_WINDOW_FULLSCREEN : 0;
+
+	if (SDL_Init(flags) == 0) {
+		window = SDL_CreateWindow(title, width, height, flags);
+		if (window) {
+			this->width = width;
+			this->height = height;
+			std::cout << "Window has been created!" << std::endl;
+		}
+
+		renderer = SDL_CreateRenderer(window, NULL);
+		if (renderer) {
+			SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+			std::cout << "Renderer has been created!" << std::endl;
+		}
+
+		isRunning = true;
+	}
+	else {
+		std::cout << "Subsystem init failed!" << std::endl;
+		isRunning = false;
+	}
+}
+
+void Game::initMap() {
+	Map::LoadMap("Pictures/Map/p16x16_Level1.map", 16, 16);
+}
+
+
+void Game::initPlayer() {
+	newPlayer.addComponent<TransformComponent>(0.0f, 950.0f);
+	newPlayer.addComponent<SpriteComponent>("Pictures/SpaceShip_1_Player.png");
+	newPlayer.addComponent<KeyboardController>();
+	newPlayer.addComponent<ColliderComponent>("player");
+	newPlayer.addComponent<HealthComponent>();
+	newPlayer.addGroup(groupPlayers);
+}
+
+void Game::initUI() {
+	SDL_Color textColor = { 255, 255, 255, 255 };
+	SDL_Color bgColor = { 0, 0, 0, 0 };
+
+	scoreBoard = new ScoreBoard(&newPlayer, 0, 0,
+		"./Pictures/Fonts/Roboto-VariableFont.ttf",
+		"Health: 100 | Enemies: 0", 100, bgColor, textColor);
+	scoreBoard->init();
+}
+
+void Game::initSpawners() {
+	enemySpawner = new EnemySpawner(manager);
+	enemySpawner->spawnEnemyFormation();
+
+	objectSpawner = new ObjectSpawner(manager);
+}
+
+void Game::initEntities() {
+	energySpell.addComponent<TransformComponent>(950.0f, 950.0f, 64, 64, 1);
+	energySpell.addComponent<SpriteComponent>("Pictures/Objects/Energy_Object_1.png");
+	energySpell.addComponent<ColliderComponent>("energySpell");
+	energySpell.addGroup(groupItems);
+}
+
 

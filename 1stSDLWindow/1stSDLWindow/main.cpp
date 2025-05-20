@@ -24,7 +24,15 @@ int main(int argc, char* argv[]) {
 
 		frameStart = SDL_GetTicks();
 
+		if (Game::gameState == MENU) {
 
+		}
+		else if (Game::gameState == PLAYING) {
+
+		}
+		else if (Game::gameState == EXIT) {
+
+		}
 
 		game->handleEvents();
 		game->update();
