@@ -21,7 +21,9 @@ using std::endl;
 
 //Map* map;
 Manager manager;
-GameState gameState = MENU;
+GameState gameState;
+
+
 
 SDL_Renderer* Game::renderer = nullptr;
 SDL_Event Game::event;
@@ -189,165 +191,46 @@ auto& projectiles(manager.getGroup(groupProjectile));
 auto& walls(manager.getGroup(groupWall));
 
 void Game::update() {
-	manager.refresh();
-	manager.update();
 
-	
-
-	Uint32 currentTime = SDL_GetTicks();
-	deltaTime = (currentTime - lastFrameTime) / 1000.0f;
-	lastFrameTime = currentTime;
-
-	enemySpawner->update();
-
-	if (enemySpawner->allEnemiesDestroyed()) {
-		enemySpawner->spawnEnemyFormation();
-	}
-
-	for (auto cc : colliders) {
-		Collision::AABB(newPlayer.getComponent<ColliderComponent>(), *cc);
-	}
-
-
-	for (auto& wallEntity : walls) {
-		if (Collision::AABB(
-			newPlayer.getComponent<ColliderComponent>().collider,
-			wallEntity->getComponent<ColliderComponent>().collider)) {
-			newPlayer.getComponent<TransformComponent>().position =
-			newPlayer.getComponent<TransformComponent>().previousPosition;
-			newPlayer.getComponent<TransformComponent>().velocity = { 0, 0 };
-
-			std::cout << "Wall hit\n";
+	// Initialize state if necessary
+	if (!stateInitialized) {
+		switch (gameState) {
+		case GameState::MENU:
+			initMenu();
+			break;
+		case GameState::PLAYING:
+			initPlaying();
+			break;
+		case GameState::PAUSED:
+			initPaused();
+			break;
+		case GameState::GAME_OVER:
+			initGameOver();
+			break;
 		}
+		stateInitialized = true;
+	}
 
-		
+	// Update based on current state
+	switch (gameState) {
+	case GameState::MENU:
+		updateMenu();
+		break;
+	case GameState::PLAYING:
+		updatePlaying();
+
+
+
+		break;
+	case GameState::PAUSED:
+		updatePaused();
+		break;
+	case GameState::GAME_OVER:
+		updateGameOver();
+		break;
 	}
 
 
-	for (auto& wallEntity : walls) {
-		if (Collision::AABB(
-			newPlayer.getComponent<ColliderComponent>().collider,
-			wallEntity->getComponent<ColliderComponent>().collider)) {
-			newPlayer.getComponent<TransformComponent>().position =
-				newPlayer.getComponent<TransformComponent>().previousPosition;
-			newPlayer.getComponent<TransformComponent>().velocity = { 0, 0 };
-
-			std::cout << "Wall hit\n";
-		}
-		for (auto& projectile : projectiles) {
-
-			if (Collision::AABB(wallEntity->getComponent<ColliderComponent>().collider, projectile->getComponent<ColliderComponent>().collider)) {
-
-				
-				projectile->destroy();
-
-			}
-		}
-
-
-	}
-	
-	if (Collision::AABB(
-		newPlayer.getComponent<ColliderComponent>().collider,
-		energySpell.getComponent<ColliderComponent>().collider)) {
-		newPlayer.getComponent<TransformComponent>().scale += 0.3;
-		newPlayer.getComponent<TransformComponent>().velocity.x += 1;
-	}
-
-	for (auto& projectile : projectiles) {
-		if (projectile->hasComponent<ColliderComponent>() &&
-			projectile->getComponent<ColliderComponent>().tag == "enemyBullet") {
-
-			if (Collision::AABB(
-				newPlayer.getComponent<ColliderComponent>().collider,
-				projectile->getComponent<ColliderComponent>().collider)) {
-
-				// Get damage amount
-				int damage = 10; // Default
-				if (projectile->hasComponent<DamageComponent>()) {
-					damage = projectile->getComponent<DamageComponent>().damageAmount;
-				}
-
-				// Apply damage to player
-				bool playerDied = newPlayer.getComponent<HealthComponent>().takeDamage(damage);
-				std::cout << "Player hit by enemy bullet! Remaining health: "
-					<< newPlayer.getComponent<HealthComponent>().currentHealth << std::endl;
-
-				// Handle player death if needed
-				if (playerDied) {
-					// Game over logic
-					std::cout << "Player died! Game over!" << std::endl;
-					// You could add game over screen or restart logic here
-				}
-
-				// Destroy the bullet
-				projectile->destroy();
-			}
-		}
-	}
-
-	for (auto& p1 : projectiles) {
-		if (!p1->isActive()) continue;
-
-		bool isPlayerBullet = p1->getComponent<ColliderComponent>().tag == "bullet";
-
-		for (auto& p2 : projectiles) {
-			if (!p2->isActive() || p1 == p2) continue;
-
-			bool isEnemyBullet = p2->getComponent<ColliderComponent>().tag == "enemyBullet";
-
-	
-			if (isPlayerBullet && isEnemyBullet) {
-				if (Collision::AABB(
-					p1->getComponent<ColliderComponent>().collider,
-					p2->getComponent<ColliderComponent>().collider)) {
-
-					p1->destroy();
-					p2->destroy();
-					break;
-				}
-			}
-		}
-	}
-
-	for (auto& projectile : projectiles) {
-		if (!projectile->isActive() ||
-			projectile->getComponent<ColliderComponent>().tag != "bullet") {
-			continue;
-		}
-
-		for (auto& enemy : enemies) {
-			if (!enemy->isActive()) continue;
-
-			if (Collision::AABB(
-				projectile->getComponent<ColliderComponent>().collider,
-				enemy->getComponent<ColliderComponent>().collider)) {
-
-				// Get damage amount
-				int damage = 10; // Default
-				if (projectile->hasComponent<DamageComponent>()) {
-					damage = projectile->getComponent<DamageComponent>().damageAmount;
-				}
-
-				// Apply damage to enemy
-				bool enemyDied = enemy->getComponent<HealthComponent>().takeDamage(damage);
-
-				// Always destroy the bullet
-				projectile->destroy();
-
-				// Handle enemy death
-				if (enemyDied) {
-					Game::reduceEnemyCount();
-					std::cout << "Enemy destroyed!" << std::endl;
-					enemy->destroy();
-					objectSpawner->spawnObject(enemy);
-				}
-
-				break;
-			}
-		}
-	}
-	scoreBoard->update();
 
 }
 
@@ -355,34 +238,6 @@ void Game::update() {
 
 
 void Game::render() {
-
-	SDL_RenderClear(renderer);
-	//whichever is rendered first appears on the background and the rest of the stuff is on top
-	//this is where we add stuff to the renderer
-	//map->DrawMap();
-
-
-	for (auto* t : tiles) {
-
-		t->draw();
-	}
-	
-
-	for (auto* p : players) {
-		p->draw();
-	}
-	for (auto* e : enemies) {
-		e->draw();
-	}
-	for (auto* i : items) {
-		i->draw();
-	}for (auto* p : projectiles) {
-		p->draw();
-	}
-	HealthRenderSystem::Draw(manager);
-
-	scoreBoard->draw();
-	SDL_RenderPresent(renderer);
 }
 
 void Game::clean() {
@@ -420,6 +275,19 @@ void Game::AddTile(int id, int x, int y, std::set<int>  collisionTileIdList) {
 void Game::reduceEnemyCount() {
 
 	Game::enemyCount--;
+}
+
+void Game::setState(GameState newState) {
+
+	if (gameState == newState) return;
+
+	if (gameState == GameState::PLAYING) {
+
+		//here I should clean the current game stuff
+	}
+
+	gameState = newState;
+	stateInitialized = false;
 }
 
 
@@ -487,3 +355,238 @@ void Game::initEntities() {
 }
 
 
+
+void Game::updatePlaying() {
+
+	manager.refresh();
+	manager.update();
+
+
+
+	Uint32 currentTime = SDL_GetTicks();
+	deltaTime = (currentTime - lastFrameTime) / 1000.0f;
+	lastFrameTime = currentTime;
+
+	enemySpawner->update();
+
+	if (enemySpawner->allEnemiesDestroyed()) {
+		enemySpawner->spawnEnemyFormation();
+	}
+
+	for (auto cc : colliders) {
+		Collision::AABB(newPlayer.getComponent<ColliderComponent>(), *cc);
+	}
+
+
+	for (auto& wallEntity : walls) {
+		if (Collision::AABB(
+			newPlayer.getComponent<ColliderComponent>().collider,
+			wallEntity->getComponent<ColliderComponent>().collider)) {
+			newPlayer.getComponent<TransformComponent>().position =
+				newPlayer.getComponent<TransformComponent>().previousPosition;
+			newPlayer.getComponent<TransformComponent>().velocity = { 0, 0 };
+
+			std::cout << "Wall hit\n";
+		}
+
+
+	}
+
+
+	for (auto& wallEntity : walls) {
+		if (Collision::AABB(
+			newPlayer.getComponent<ColliderComponent>().collider,
+			wallEntity->getComponent<ColliderComponent>().collider)) {
+			newPlayer.getComponent<TransformComponent>().position =
+				newPlayer.getComponent<TransformComponent>().previousPosition;
+			newPlayer.getComponent<TransformComponent>().velocity = { 0, 0 };
+
+			std::cout << "Wall hit\n";
+		}
+		for (auto& projectile : projectiles) {
+
+			if (Collision::AABB(wallEntity->getComponent<ColliderComponent>().collider, projectile->getComponent<ColliderComponent>().collider)) {
+
+
+				projectile->destroy();
+
+			}
+		}
+
+
+	}
+
+	if (Collision::AABB(
+		newPlayer.getComponent<ColliderComponent>().collider,
+		energySpell.getComponent<ColliderComponent>().collider)) {
+		newPlayer.getComponent<TransformComponent>().scale += 0.3;
+		newPlayer.getComponent<TransformComponent>().velocity.x += 1;
+	}
+
+	for (auto& projectile : projectiles) {
+		if (projectile->hasComponent<ColliderComponent>() &&
+			projectile->getComponent<ColliderComponent>().tag == "enemyBullet") {
+
+			if (Collision::AABB(
+				newPlayer.getComponent<ColliderComponent>().collider,
+				projectile->getComponent<ColliderComponent>().collider)) {
+
+				// Get damage amount
+				int damage = 10; // Default
+				if (projectile->hasComponent<DamageComponent>()) {
+					damage = projectile->getComponent<DamageComponent>().damageAmount;
+				}
+
+				// Apply damage to player
+				bool playerDied = newPlayer.getComponent<HealthComponent>().takeDamage(damage);
+				std::cout << "Player hit by enemy bullet! Remaining health: "
+					<< newPlayer.getComponent<HealthComponent>().currentHealth << std::endl;
+
+				// Handle player death if needed
+				if (playerDied) {
+					// Game over logic
+					std::cout << "Player died! Game over!" << std::endl;
+					// You could add game over screen or restart logic here
+				}
+
+				// Destroy the bullet
+				projectile->destroy();
+			}
+		}
+	}
+
+	for (auto& p1 : projectiles) {
+		if (!p1->isActive()) continue;
+
+		bool isPlayerBullet = p1->getComponent<ColliderComponent>().tag == "bullet";
+
+		for (auto& p2 : projectiles) {
+			if (!p2->isActive() || p1 == p2) continue;
+
+			bool isEnemyBullet = p2->getComponent<ColliderComponent>().tag == "enemyBullet";
+
+
+			if (isPlayerBullet && isEnemyBullet) {
+				if (Collision::AABB(
+					p1->getComponent<ColliderComponent>().collider,
+					p2->getComponent<ColliderComponent>().collider)) {
+
+					p1->destroy();
+					p2->destroy();
+					break;
+				}
+			}
+		}
+	}
+
+	for (auto& projectile : projectiles) {
+		if (!projectile->isActive() ||
+			projectile->getComponent<ColliderComponent>().tag != "bullet") {
+			continue;
+		}
+
+		for (auto& enemy : enemies) {
+			if (!enemy->isActive()) continue;
+
+			if (Collision::AABB(
+				projectile->getComponent<ColliderComponent>().collider,
+				enemy->getComponent<ColliderComponent>().collider)) {
+
+				// Get damage amount
+				int damage = 10; // Default
+				if (projectile->hasComponent<DamageComponent>()) {
+					damage = projectile->getComponent<DamageComponent>().damageAmount;
+				}
+
+				// Apply damage to enemy
+				bool enemyDied = enemy->getComponent<HealthComponent>().takeDamage(damage);
+
+				// Always destroy the bullet
+				projectile->destroy();
+
+				// Handle enemy death
+				if (enemyDied) {
+					Game::reduceEnemyCount();
+					std::cout << "Enemy destroyed!" << std::endl;
+					enemy->destroy();
+					objectSpawner->spawnObject(enemy);
+				}
+
+				break;
+			}
+		}
+	}
+	scoreBoard->update();
+}
+
+void Game::initMenu() {
+	// Initialize only what's needed for the menu
+	initWindowAndRenderer("ELDER SCROLLS MENU", 1024, 1024, false);
+
+	// Create menu buttons/UI elements
+	// You might need a MenuComponent or similar class
+}
+
+void Game::updateMenu() {
+	// Process menu-specific logic
+	// Handle menu button clicks, selections, etc.
+
+	// Example of state transition
+	/*if (menuStartButtonClicked) {
+		setState(GameState::PLAYING);
+	}*/
+}
+
+void Game::renderMenu() {
+
+
+
+	SDL_RenderClear(renderer);
+	//whichever is rendered first appears on the background and the rest of the stuff is on top
+	//this is where we add stuff to the renderer
+	//map->DrawMap();
+
+
+	for (auto* t : tiles) {
+
+		t->draw();
+	}
+
+
+	for (auto* p : players) {
+		p->draw();
+	}
+	for (auto* e : enemies) {
+		e->draw();
+	}
+	for (auto* i : items) {
+		i->draw();
+	}for (auto* p : projectiles) {
+		p->draw();
+	}
+	HealthRenderSystem::Draw(manager);
+
+	scoreBoard->draw();
+	SDL_RenderPresent(renderer);
+}
+
+void Game::initPlaying() {
+	// Initialize game elements needed for playing state
+	initMap();
+	initPlayer();
+	initUI();
+	initSpawners();
+	initEntities();
+}
+
+
+
+void Game::renderPlaying() {
+	for (auto* t : tiles) {
+		t->draw();
+	}
+	for (auto* p : players) {
+		p->draw();
+	}
+	
+}

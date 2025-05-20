@@ -18,21 +18,21 @@ int main(int argc, char* argv[]) {
 	game->init("ELDER SCROOLS", 1024,  1024, false);
 
 
-
+	game->setState(GameState::PLAYING);
 	std::cout << game->running() << std::endl;
 	while (game->running()) {
 
 		frameStart = SDL_GetTicks();
 
-		if (Game::gameState == MENU) {
+		//if (Game::gameState == MENU) {
 
-		}
-		else if (Game::gameState == PLAYING) {
+		//}
+		//else if (Game::gameState == PLAYING) {
 
-		}
-		else if (Game::gameState == EXIT) {
+		//}
+		//else if (Game::gameState == GAME_OVER) {
 
-		}
+		//}
 
 		game->handleEvents();
 		game->update();

@@ -12,9 +12,14 @@ class ObjectSpawner;
 class ColliderComponent;
 class ScoreBoard;
 
-enum GameState {
-	MENU, PLAYING, GAME_OVER
+
+enum class GameState {
+	MENU,
+	PLAYING,
+	PAUSED,
+	GAME_OVER
 };
+
 
 class Game {
 
@@ -39,6 +44,7 @@ public :
 	static int enemyCount;
 	void reduceEnemyCount();
 	static float deltaTime ;
+	void setState(GameState newState);
 	static GameState gameState;
 private:
 
@@ -48,6 +54,28 @@ private:
 	void initUI();
 	void initSpawners();
 	void initEntities();
+
+
+
+	void initMenu();
+	void updateMenu();
+	void renderMenu();
+
+	void initPlaying();
+	void updatePlaying();
+	void renderPlaying();
+
+	void initPaused();
+	void updatePaused();
+	void renderPaused();
+
+	void initGameOver();
+	void updateGameOver();
+	void renderGameOver();
+
+	void changeStates(GameState newState);
+
+	bool stateInitialized = false;
 
 	ObjectSpawner* objectSpawner;
 	ScoreBoard* scoreBoard;
