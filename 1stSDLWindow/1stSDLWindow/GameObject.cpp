@@ -4,8 +4,7 @@
 
 GameObject::GameObject(const char* textureSheet,int x , int y) {
 	
-	std::cout << "file" << textureSheet << std::endl;
-	objTexture = TextureManager::LoadTexture(textureSheet);
+ 	objTexture = TextureManager::LoadTexture(textureSheet);
 
 	xpos = x;
 	ypos = y;

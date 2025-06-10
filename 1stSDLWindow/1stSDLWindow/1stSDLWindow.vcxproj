@@ -168,12 +168,14 @@
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="MouseController.cpp" />
     <ClCompile Include="ObjectSpawner.cpp" />
+    <ClCompile Include="PauseMenu.cpp" />
     <ClCompile Include="ScoreBoard.cpp" />
     <ClCompile Include="ShootingComponent.cpp" />
     <ClCompile Include="SpriteComponent.cpp" />
     <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="TileComponent.cpp" />
     <ClCompile Include="TransformComponent.cpp" />
+    <ClCompile Include="UIButton.cpp" />
     <ClCompile Include="Vector2D.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -194,12 +196,14 @@
     <ClInclude Include="Map.h" />
     <ClInclude Include="MouseController.h" />
     <ClInclude Include="ObjectSpawner.h" />
+    <ClInclude Include="PauseMenu.h" />
     <ClInclude Include="ScoreBoard.h" />
     <ClInclude Include="ShootingComponent.h" />
     <ClInclude Include="TileComponent.h" />
     <ClInclude Include="TransformComponent.h" />
     <ClInclude Include="SpriteComponent.h" />
     <ClInclude Include="TextureManager.h" />
+    <ClInclude Include="UIButton.h" />
     <ClInclude Include="Vector2D.h" />
   </ItemGroup>
   <ItemGroup>

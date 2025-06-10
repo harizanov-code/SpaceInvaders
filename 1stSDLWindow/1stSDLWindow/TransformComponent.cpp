@@ -47,8 +47,7 @@ void TransformComponent::update() {
         if (entity->hasComponent<ColliderComponent>()) {
             auto& collider = entity->getComponent<ColliderComponent>();
             if (collider.tag == "bullet" || collider.tag == "enemyBullet" || collider.tag ==  "itemObject") {
-                std::cout << "Went off the screen" << std::endl;
-             
+              
                 active = false;
                 entity->destroy();
             }

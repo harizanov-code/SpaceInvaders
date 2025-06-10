@@ -51,8 +51,7 @@ void EnemySpawner::spawnEnemyFormation() {
         }
     }
 
-    std::cout << "Spawned " << enemies.size() << " enemies" << std::endl;
-}
+ }
 
 // Rest of the implementation remains the same
 void EnemySpawner::update() {
@@ -77,8 +76,7 @@ void EnemySpawner::updateEnemyMovement() {
             
         }
     }
-    std::cout << "Second enemy pos : " << enemies.at(1)->getComponent<TransformComponent>().position.x << std::endl;
-
+ 
     // Move all enemies
     //for (auto* enemy : enemies) {
     //    if (!enemy->isActive()) continue;

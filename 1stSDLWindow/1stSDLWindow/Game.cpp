@@ -16,12 +16,16 @@
 #include "HealthRenderSystem.h"
 #include "DamageComponent.h"
 #include "ScoreBoard.h"
+#include "PauseMenu.h"
+#include "UIButton.h"
+
 using std::cout;
 using std::endl;
 
 //Map* map;
 Manager manager;
-GameState gameState;
+
+GameState Game::gameState = PLAYING;
 
 
 
@@ -50,6 +54,7 @@ auto& energySpell(manager.addEntity());
 
 
 Game::Game() {
+
 }
 
 Game::~Game() {
@@ -59,130 +64,66 @@ float Game::deltaTime = 1.0f;
 int Game::enemyCount = 0;
 
 void Game::init(const char* title, int width, int height, bool fullscreen) {
-	int flags = 0;
-	if (fullscreen) {
-
-		flags = SDL_WINDOW_FULLSCREEN;
-	}
-	else {
-		flags = NULL;
-	}
-	if (SDL_Init(flags)) {
-
-		std::cout << "Subsystem init" << std::endl;
-		this->window = SDL_CreateWindow(title, width, height, flags);
-		if (window) {
-			this->height = height;
-			this->width = width;
-			cout << "Window has been created!" << endl;
-		}
-
-		this->renderer = SDL_CreateRenderer(window, NULL);
-		if (renderer) {
-			SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-			cout << "Renderer has been created!" << endl;
-		}
-		isRunning = true;
-	}
-	else {
-		isRunning = false;
-	}
-
-	//player = new GameObject("Pictures/SpaceShip_1_Player.png"	, 0 ,400);
-		//enemy = new GameObject("Pictures/Enemies/Enemy_Level1_Cloud.png"	, 0 ,0);
-	
-	//space Invaders map
-	Map::LoadMap("Pictures/Map/p16x16_Level1.map",16, 16);
-	 
-	 //rpg game map
-	//Map::LoadMap("Pictures/Map/p16x16.map",16, 16);
-
-	/*waterTile.addComponent<TileComponent>(200, 200, 64, 64, TileTypes::WATER);
-	dirtTile.addComponent<TileComponent>(250, 250,64,64,TileTypes::DIRT);
-	dirtTile.addComponent<ColliderComponent>("dirt");
-	grassTile.addComponent<TileComponent>(150, 150,64,64,TileTypes::GRASS);
-	grassTile.addComponent<ColliderComponent>("grass");*/
-
-	newPlayer.addComponent<TransformComponent>(0.0f, 950.0f);
-	newPlayer.addComponent<SpriteComponent>("Pictures/SpaceShip_1_Player.png");
-	newPlayer.addComponent<KeyboardController>();
-	newPlayer.addComponent<ColliderComponent>("player");
-	newPlayer.addGroup(groupPlayers);
-	newPlayer.addComponent<HealthComponent>();
-	// In Game.cpp init:
-	SDL_Color textColor = { 255, 255, 255, 255 };  // White
-	SDL_Color bgColor = { 0, 0, 0, 0 };         // Semi-transparent black
-
-
-	scoreBoard = new ScoreBoard(&newPlayer,0,0, "./Pictures/Fonts/Roboto-VariableFont.ttf",
-		"Health: 100 | Enemies: 0", 100, bgColor,textColor);
-	scoreBoard->init();
-
-	enemySpawner = new EnemySpawner(manager);
-	enemySpawner->spawnEnemyFormation();
-
-	objectSpawner = new ObjectSpawner(manager);
-
-
-
-
-
-	energySpell.addComponent<TransformComponent>(950.0f, 950.0f, 64, 64, 1);
-	energySpell.addComponent<SpriteComponent>("Pictures/Objects/Energy_Object_1.png");
-	energySpell.addComponent<ColliderComponent>("energySpell");
-	energySpell.addGroup(groupItems);
-
-
+	this->initWindowAndRenderer(title, width, height, fullscreen);
 
 }
 void Game::handleEvents() {
 	SDL_PollEvent(&event);
 
+	// Global events (apply to all states)
 	switch (event.type) {
 	case SDL_EVENT_QUIT:
 		isRunning = false;
 		break;
-	case SDL_EVENT_MOUSE_BUTTON_DOWN:
-		if (Game::event.button.button == SDL_BUTTON_LEFT) {
-			// Check if we already have fewer than 3 active bullets
-			int activeBulletCount = 0;
-			for (auto& entity : manager.entities) {
 
-
-				if (entity->hasComponent<ColliderComponent>() && (entity->getComponent<ColliderComponent>().tag == "bullet")) {
-
-					if (entity->hasComponent<TransformComponent>() &&
-						entity->getComponent<TransformComponent>().active)
-						std::cout << "IAM Active" << std::endl;
-
-					activeBulletCount++;
-				}
+	case SDL_EVENT_KEY_DOWN:
+		switch (event.key.key) {
+		case SDLK_ESCAPE:
+			if (gameState == PLAYING) {
+				
+				gameState = PAUSED;
 			}
-
-
-			if (activeBulletCount < 3) {
-
-
-				auto& bullet = manager.addEntity();
-
-				// Add necessary components to the bullet entity
-				bullet.addComponent<TransformComponent>(newPlayer.getComponent<TransformComponent>().position.x,
-					newPlayer.getComponent<TransformComponent>().position.y);
-				bullet.addComponent<ColliderComponent>("bullet");
-				bullet.addComponent<SpriteComponent>("Pictures/Bullet_2_Player.png");
-				bullet.addGroup(groupProjectile);
-
-
-				auto& bulletTransform = bullet.getComponent<TransformComponent>();
-				bulletTransform.velocity.y = -10;
-				bulletTransform.velocity.x = 0;
+			else if (gameState == PAUSED) {
+				gameState = PLAYING;
 			}
+			else if (gameState == MENU) {
+				isRunning = false; // Quit game from menu
+			}
+			break;
+
+		case SDLK_RETURN: // ENTER key
+			if (gameState == MENU) {
+				gameState = PLAYING;
+				// Start game from menu
+			}
+			else if (gameState == GAME_OVER) {
+				gameState = MENU;
+			
+			}
+			break;
 		}
 		break;
-	default:
-		break;
+	}
+
+	// State-specific event handling
+	if (this->initializedStates.test(gameState)) {
+		switch (gameState) {
+		case MENU:
+			handleMenuEvents();
+			break;
+		case PLAYING:
+			handlePlayingEvents();
+			break;
+		case PAUSED:
+			handlePausedEvents(event);
+			break;
+		case GAME_OVER:
+			handleGameOverEvents();
+			break;
+		}
 	}
 }
+
 auto& tiles(manager.getGroup(groupMap));
 auto& players(manager.getGroup(groupPlayers));
 auto& enemies(manager.getGroup(groupEnemies));
@@ -191,41 +132,49 @@ auto& projectiles(manager.getGroup(groupProjectile));
 auto& walls(manager.getGroup(groupWall));
 
 void Game::update() {
+	std::cout << "state" << gameState << std::endl;
 
 	// Initialize state if necessary
-	if (!stateInitialized) {
+	if (!this->initializedStates.test(gameState)) {
+
+		std::cout << "state" << gameState << std::endl;
+		std::cout << "WE are here initializing again" << this->initializedStates.test(gameState) << std::endl;
+
+
 		switch (gameState) {
-		case GameState::MENU:
+		case MENU:
 			initMenu();
 			break;
-		case GameState::PLAYING:
+		case PLAYING:
 			initPlaying();
 			break;
-		case GameState::PAUSED:
+		case PAUSED:
 			initPaused();
 			break;
-		case GameState::GAME_OVER:
+		case GAME_OVER:
 			initGameOver();
 			break;
 		}
-		stateInitialized = true;
+
+		setState(gameState);
+
 	}
 
 	// Update based on current state
 	switch (gameState) {
-	case GameState::MENU:
+	case MENU:
 		updateMenu();
 		break;
-	case GameState::PLAYING:
+	case PLAYING:
 		updatePlaying();
 
 
 
 		break;
-	case GameState::PAUSED:
+	case PAUSED:
 		updatePaused();
 		break;
-	case GameState::GAME_OVER:
+	case GAME_OVER:
 		updateGameOver();
 		break;
 	}
@@ -238,6 +187,26 @@ void Game::update() {
 
 
 void Game::render() {
+
+	SDL_RenderClear(renderer);
+
+	// Render based on current state
+	switch (gameState) {
+	case MENU:
+		renderMenu();
+		break;
+	case PLAYING:
+		renderPlaying();
+		break;
+	case PAUSED:
+		renderPaused();
+		break;
+	case GAME_OVER:
+		renderGameOver();
+		break;
+	}
+
+	SDL_RenderPresent(renderer);
 }
 
 void Game::clean() {
@@ -247,7 +216,6 @@ void Game::clean() {
 	SDL_DestroyWindow(window);
 	SDL_DestroyRenderer(renderer);
 	SDL_Quit();
-	cout << "Game cleaned!" << endl;
 }
 
 bool Game::running() {
@@ -268,7 +236,7 @@ void Game::AddTile(int id, int x, int y, std::set<int>  collisionTileIdList) {
 
 		}
 	}
-	
+
 
 }
 
@@ -277,45 +245,110 @@ void Game::reduceEnemyCount() {
 	Game::enemyCount--;
 }
 
+
+
 void Game::setState(GameState newState) {
+	if (gameState != newState) {
+		// Don't clean PAUSED or if resuming from pause
+		if (!(gameState == PLAYING && newState == PAUSED) &&
+			!(gameState == PAUSED && newState == PLAYING)) {
 
-	if (gameState == newState) return;
+			std::cout << "Cleaned on set state" << std::endl;
+			cleanState(gameState);
+		}
 
-	if (gameState == GameState::PLAYING) {
+		gameState = newState;
 
-		//here I should clean the current game stuff
 	}
 
-	gameState = newState;
-	stateInitialized = false;
+	if (!initializedStates.test(newState)) {
+		initializedStates.set(newState);
+		// Optionally call initState(newState);
+	}
+}
+
+
+void Game::cleanState(GameState state) {
+	switch (state) {
+	case PLAYING:
+		// Clean gameplay-specific entities and resources
+		manager.refresh();
+		for (auto& e : manager.entities) {
+			e->destroy();
+		}
+		Game::colliders.clear();
+		Game::enemyCount = 0;
+
+		if (enemySpawner) {
+			delete enemySpawner;
+			enemySpawner = nullptr;
+		}
+
+		if (objectSpawner) {
+			delete objectSpawner;
+			objectSpawner = nullptr;
+		}
+
+		if (scoreBoard) {
+			delete scoreBoard;
+			scoreBoard = nullptr;
+		}
+
+		break;
+
+	case MENU:
+		// Clean menu-specific resources if any
+		break;
+
+	case PAUSED:
+		// Usually no cleanup here
+		break;
+
+	case GAME_OVER:
+		// Optional: if GAME_OVER has separate resources
+		break;
+
+	default:
+		break;
+	}
+
+	// Reset initialization flag for that state so it can be re-initialized later if needed
+	this->initializedStates.reset(state);
 }
 
 
 void Game::initWindowAndRenderer(const char* title, int width, int height, bool fullscreen) {
-	int flags = fullscreen ? SDL_WINDOW_FULLSCREEN : 0;
-
-	if (SDL_Init(flags) == 0) {
-		window = SDL_CreateWindow(title, width, height, flags);
-		if (window) {
-			this->width = width;
-			this->height = height;
-			std::cout << "Window has been created!" << std::endl;
-		}
-
-		renderer = SDL_CreateRenderer(window, NULL);
-		if (renderer) {
-			SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-			std::cout << "Renderer has been created!" << std::endl;
-		}
-
-		isRunning = true;
-	}
-	else {
-		std::cout << "Subsystem init failed!" << std::endl;
+	// First, initialize SDL video subsystem
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		isRunning = false;
+		return;
 	}
-}
 
+	// Then set window flags
+	int windowFlags = fullscreen ? SDL_WINDOW_FULLSCREEN : 0;
+
+	// Create window
+	this->window = SDL_CreateWindow(title, width, height, windowFlags);
+	if (!window) {
+		isRunning = false;
+		return;
+	}
+
+	this->height = height;
+	this->width = width;
+
+	// Create renderer
+	this->renderer = SDL_CreateRenderer(window, NULL);
+	if (!renderer) {
+		isRunning = false;
+		return;
+	}
+
+	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+	isRunning = true;
+	gameState = PLAYING;
+}
 void Game::initMap() {
 	Map::LoadMap("Pictures/Map/p16x16_Level1.map", 16, 16);
 }
@@ -445,7 +478,7 @@ void Game::updatePlaying() {
 				// Handle player death if needed
 				if (playerDied) {
 					// Game over logic
-					std::cout << "Player died! Game over!" << std::endl;
+
 					// You could add game over screen or restart logic here
 				}
 
@@ -507,7 +540,7 @@ void Game::updatePlaying() {
 				// Handle enemy death
 				if (enemyDied) {
 					Game::reduceEnemyCount();
-					std::cout << "Enemy destroyed!" << std::endl;
+
 					enemy->destroy();
 					objectSpawner->spawnObject(enemy);
 				}
@@ -518,13 +551,28 @@ void Game::updatePlaying() {
 	}
 	scoreBoard->update();
 }
-
 void Game::initMenu() {
-	// Initialize only what's needed for the menu
-	initWindowAndRenderer("ELDER SCROLLS MENU", 1024, 1024, false);
+	menuButtons.clear();
 
-	// Create menu buttons/UI elements
-	// You might need a MenuComponent or similar class
+	std::cout << "Init menu " << std::endl;
+	// Define Play button
+	Button playButton;
+	playButton.rect = { 300, 200, 200, 50 };
+	playButton.label = "Play";
+	playButton.onClick = [this]() {
+		setState(PLAYING);
+	};
+
+	// Define Quit button
+	Button quitButton;
+	quitButton.rect = { 300, 300, 200, 50 };
+	quitButton.label = "Quit";
+	quitButton.onClick = [this]() {
+		isRunning = false;
+	};
+
+	menuButtons.push_back(playButton);
+	menuButtons.push_back(quitButton);
 }
 
 void Game::updateMenu() {
@@ -541,10 +589,54 @@ void Game::renderMenu() {
 
 
 
-	SDL_RenderClear(renderer);
+
+
+
+
+
+	for (auto& btn : menuButtons) {
+		// Draw button background
+		SDL_SetRenderDrawColor(renderer, 70, 130, 180, 255); // steel blue
+		SDL_RenderFillRect(renderer, &btn.rect);
+
+		// Optional: draw border
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		SDL_RenderRect(renderer, &btn.rect);
+
+		// Draw text (placeholder - needs SDL_ttf for actual text)
+		// renderText(btn.label, btn.rect.x + 10, btn.rect.y + 10);
+	}
+
+	SDL_RenderPresent(renderer);
+
+
+
 	//whichever is rendered first appears on the background and the rest of the stuff is on top
 	//this is where we add stuff to the renderer
 	//map->DrawMap();
+
+
+}
+
+void Game::initPlaying() {
+
+	std::cout << "state" << gameState << std::endl;
+	std::cout << "WE are here initializing playing" << this->initializedStates.test(gameState) << std::endl;
+
+
+	setState(gameState);
+
+	// Initialize game elements needed for playing state
+	initMap();
+	initPlayer();
+	initUI();
+	initSpawners();
+	initEntities();
+}
+
+
+
+void Game::renderPlaying() {
 
 
 	for (auto* t : tiles) {
@@ -568,25 +660,122 @@ void Game::renderMenu() {
 
 	scoreBoard->draw();
 	SDL_RenderPresent(renderer);
+
+}
+void Game::initPaused() {
+
+
+	std::cout << "Created Pause menu" << std::endl;
+	SDL_Color textColor = { 255, 255, 255, 255 };
+	SDL_Color bgColor = { 0, 0, 0, 0 };
+
+	pauseMenu = new PauseMenu("./Pictures/Fonts/Roboto-VariableFont.ttf",24,
+		bgColor, textColor);
+	pauseMenu->init();
 }
 
-void Game::initPlaying() {
-	// Initialize game elements needed for playing state
-	initMap();
-	initPlayer();
-	initUI();
-	initSpawners();
-	initEntities();
-}
-
-
-
-void Game::renderPlaying() {
-	for (auto* t : tiles) {
-		t->draw();
-	}
-	for (auto* p : players) {
-		p->draw();
-	}
+void Game::updatePaused() {
 	
+	pauseMenu->draw();
+
 }
+void Game::renderPaused() {
+
+	pauseMenu->draw();
+
+
+	SDL_RenderPresent(renderer);
+
+
+}
+void Game::initGameOver() {
+
+}
+void Game::updateGameOver() {
+
+}
+void Game::renderGameOver() {
+
+
+}
+void Game::changeStates(GameState newState) {
+
+}
+
+void Game::handleMenuEvents() {
+	if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+		int mouseX = event.button.x;
+		int mouseY = event.button.y;
+
+
+		SDL_FPoint point = { mouseX, mouseY };
+		for (auto& btn : menuButtons) {
+			if (SDL_PointInRectFloat(&point, &btn.rect)) {
+				btn.onClick(); // Trigger button action
+				break;
+			}
+		}
+	}
+}
+
+void Game::handlePausedEvents(SDL_Event event) {
+
+	pauseMenu->handleEvent(event);
+
+
+}
+
+void Game::handlePlayingEvents() {
+
+
+	switch (event.type) {
+	case SDL_EVENT_QUIT:
+		isRunning = false;
+		break;
+	case SDL_EVENT_MOUSE_BUTTON_DOWN:
+		if (Game::event.button.button == SDL_BUTTON_LEFT) {
+			// Check if we already have fewer than 3 active bullets
+			int activeBulletCount = 0;
+			for (auto& entity : manager.entities) {
+
+
+				if (entity->hasComponent<ColliderComponent>() && (entity->getComponent<ColliderComponent>().tag == "bullet")) {
+
+					if (entity->hasComponent<TransformComponent>() &&
+						entity->getComponent<TransformComponent>().active)
+
+						activeBulletCount++;
+				}
+			}
+
+
+			if (activeBulletCount < 3) {
+
+
+				auto& bullet = manager.addEntity();
+
+				// Add necessary components to the bullet entity
+				bullet.addComponent<TransformComponent>(newPlayer.getComponent<TransformComponent>().position.x,
+					newPlayer.getComponent<TransformComponent>().position.y);
+				bullet.addComponent<ColliderComponent>("bullet");
+				bullet.addComponent<SpriteComponent>("Pictures/Bullet_2_Player.png");
+				bullet.addGroup(groupProjectile);
+
+
+				auto& bulletTransform = bullet.getComponent<TransformComponent>();
+				bulletTransform.velocity.y = -10;
+				bulletTransform.velocity.x = 0;
+			}
+		}
+		break;
+	default:
+		break;
+	}
+
+}
+
+void Game::handleGameOverEvents() {
+
+}
+
+

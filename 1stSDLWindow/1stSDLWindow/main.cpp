@@ -14,13 +14,11 @@ int main(int argc, char* argv[]) {
 	int frameTime;
 	std::srand(static_cast<unsigned int>(std::time(nullptr)));
 
-	game = new Game();
-	game->init("ELDER SCROOLS", 1024,  1024, false);
+	game = new Game();/*
+	game->init("ELDER SCROOLS", 1024,  1024, false);*/
+	game->init("ELDER SCROOLS", 1024, 1024, false);
 
-
-	game->setState(GameState::PLAYING);
-	std::cout << game->running() << std::endl;
-	while (game->running()) {
+ 	while (game->running()) {
 
 		frameStart = SDL_GetTicks();
 

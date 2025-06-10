@@ -23,10 +23,7 @@ void MouseController::update() {
             bullet.addComponent<SpriteComponent>("Pictures/Bullet_2_Player.png");  // Bullet sprite
 
             for (auto& entity : manager.entities) {
-                std::cout << "Entity image path : " << entity->getComponent<SpriteComponent>().getPath() << std::endl;
-                std::cout << "Entity pointer: " << &entity << std::endl;
-                std::cout << "Entity X Pos: " << entity->getComponent<TransformComponent>().position.x << std::endl;
-            }
+               }
 
             // Get the bullet's transform and set its velocity
             auto& bulletTransform = bullet.getComponent<TransformComponent>();

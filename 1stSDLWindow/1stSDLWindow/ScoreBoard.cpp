@@ -16,8 +16,7 @@ ScoreBoard::ScoreBoard(Entity* player,int x , int y, const char* fontPath, const
 void ScoreBoard::init() {
 
     if(TTF_Init() == -1) {
-        std::cout << "Couldn't initialize " << std::endl;
-
+ 
     }
 
 
@@ -34,8 +33,7 @@ void ScoreBoard::init() {
         }
     }
     else {
-        std::cout << "Font loaded successfully!" << std::endl;
-    }
+     }
 
     // Now render the text
     currentText = text;
@@ -53,8 +51,7 @@ void ScoreBoard::init() {
         std::cerr << "Failed to create texture from surface: " << SDL_GetError() << std::endl;
     }
     else {
-        std::cout << "Scoreboard text rendered successfully!" << std::endl;
-    }
+     }
 }
 void ScoreBoard::update() {
 
@@ -91,12 +88,10 @@ void ScoreBoard::update() {
 void ScoreBoard::draw() {
     if (!tex) return;
 
-    std::cout << "Drawing score board " << std::endl;
-
+ 
     float textW, textH;
     SDL_GetTextureSize(tex, &textW, &textH);
-    std::cout << "WIDHT AND HEIGHT" << textW << "---" << textH << std::endl;
-    SDL_FRect srcRect = { 0, 0, textW, textH };
+     SDL_FRect srcRect = { 0, 0, textW, textH };
     SDL_FRect destRect = { static_cast<float>(x) , static_cast<float>(y), textW, textH };
 
     TextureManager::Draw(tex, srcRect, destRect);
